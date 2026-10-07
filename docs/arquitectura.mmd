@@ -1,0 +1,46 @@
+flowchart TD
+    subgraph P["Capa de presentación"]
+        Menor(["Menor<br/>(alumno simulado)"])
+        Front["Frontend chatbot<br/>presenta guiones, mide latencia"]
+        Terapeuta(["Terapeuta"])
+        Dash["Dashboard Streamlit<br/>métricas, alertas, transcripciones"]
+    end
+
+    subgraph A["Capa de aplicación"]
+        Back["Backend FastAPI<br/>conversación · eventos · métricas · predicción"]
+    end
+
+    subgraph S["Capa de inteligencia y datos"]
+        LLM["LLM local (Ollama 8B)<br/>o modo simulado sin GPU"]
+        DB[("PostgreSQL<br/>perfiles · sesiones · turnos")]
+        Modelo["Clasificador entrenado<br/>modelo.joblib"]
+    end
+
+    subgraph O["Entrenamiento offline (por lotes)"]
+        Gen["Generador de<br/>corpus sintético"]
+        Feat["Pipeline de features"]
+        Train["Entrenamiento y evaluación<br/>split por alumno"]
+    end
+
+    Menor --> Front
+    Terapeuta <-->|consulta · corrige · anota| Dash
+    Front <-->|REST JSON| Back
+    Dash <-->|REST JSON| Back
+    Back <-->|API compatible OpenAI| LLM
+    Back <-->|SQL| DB
+    Back <-->|features → predicción| Modelo
+    DB -->|lee sesiones| Feat
+    Feat --> Train
+    Gen -.->|vuelca el corpus, SQL por lotes| DB
+    Train -.->|guarda| Modelo
+
+    classDef person fill:#EDEAE3,stroke:#3D3A34,stroke-width:1.5px,color:#3D3A34
+    classDef svc fill:#FFFFFF,stroke:#3D3A34,stroke-width:1.2px,color:#3D3A34
+    classDef store fill:#F4EDE4,stroke:#8A6D3B,stroke-width:1.2px,color:#3D3A34
+    classDef ml fill:#E7EEF1,stroke:#2F5D68,stroke-width:1.2px,color:#3D3A34
+    classDef layer fill:#F7F8F8,stroke:#9AA5A8,stroke-width:1px,color:#3D3A34
+    class Menor,Terapeuta person
+    class Front,Back,Dash,LLM svc
+    class DB store
+    class Gen,Feat,Train,Modelo ml
+    class P,A,S,O layer
