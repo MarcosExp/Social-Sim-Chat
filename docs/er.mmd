@@ -5,9 +5,10 @@ erDiagram
     student_profile_sim {
         text student_id PK "pseudonimizado"
         text arquetipo "A / B / C / D"
-        text competencia_objetivo
-        text trayectoria_disenada "progreso / estancamiento / regresion"
-        boolean alta_variabilidad
+        text competencia_objetivo "solo generacion, no es feature"
+        text trayectoria_disenada "progreso / estancamiento / regresion, solo generacion"
+        text nivel_ruido "bajo / medio / alto"
+        boolean ambiguo "trayectoria ambigua"
         int sesion_inicio_evento "sesion desde la que aplica la trayectoria"
         text tramo_edad "6-8 / 8-10 / 10-12"
         int n_sesiones
@@ -16,20 +17,20 @@ erDiagram
     session_data {
         uuid session_id PK
         text student_id FK
-        int sesion_num
+        int sesion_num UK "UNIQUE con student_id"
         date fecha
-        text competencia
+        text competencia "para el dashboard, no es feature"
         text personaje
-        real amlu
-        real latencia_pragmatica_ms
-        real irc_pct
-        real pepe
-        real pct_det
-        text etiqueta_real_disenada "verdad de diseno"
+        real amlu "feature"
+        real latencia_pragmatica_ms "feature"
+        real irc_pct "feature"
+        real pepe "feature"
+        real pct_det "feature"
+        text etiqueta_real_disenada "verdad de diseno, progreso antes de sesion_inicio_evento, no es feature"
         text etiqueta_prediccion "salida del clasificador"
         real confianza_prediccion
         text etiqueta_corregida "correccion del terapeuta"
-        text nota_clinica
+        text nota_clinica "sensible en caso real (RGPD)"
     }
 
     turn_data {
@@ -44,5 +45,5 @@ erDiagram
         smallint accuracy_corregido
         int ayudas_solicitadas
         int latencia_ms
-        text texto_respuesta
+        text texto_respuesta "sensible en caso real (RGPD)"
     }

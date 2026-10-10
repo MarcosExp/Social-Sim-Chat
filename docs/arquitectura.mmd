@@ -1,4 +1,5 @@
 flowchart TD
+
     subgraph P["Capa de presentación"]
         Menor(["Menor<br/>(alumno simulado)"])
         Front["Frontend chatbot<br/>presenta guiones, mide latencia"]
@@ -17,12 +18,12 @@ flowchart TD
     end
 
     subgraph O["Entrenamiento offline (por lotes)"]
-        Gen["Generador de<br/>corpus sintético"]
-        Feat["Pipeline de features"]
+        Gen["Generador de<br/>corpus sintético<br/>config.yaml + seed"]
+        Feat["Pipeline de features<br/>misma función que en inferencia"]
         Train["Entrenamiento y evaluación<br/>split por alumno"]
     end
 
-    Menor --> Front
+    Menor <-->|mensajes del chat| Front
     Terapeuta <-->|consulta · corrige · anota| Dash
     Front <-->|REST JSON| Back
     Dash <-->|REST JSON| Back
