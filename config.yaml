@@ -1,0 +1,51 @@
+# Parámetros del generador de corpus sintético (SOCIAL-SIM Chat).
+# Fuente: cambios-generador-corpus.md, secciones 3 y 4 (Álvaro, 09/10/2026).
+seed: 42
+n_alumnos: 100            # 25 por competencia
+n_sesiones: 15            # 1.500 sesiones en total
+
+inicio_cambio:
+  distribucion: uniforme_entera
+  min: 4
+  max: 12                 # por alumno, independiente de la competencia
+
+pendiente:                # multiplicador sobre la pendiente de progreso, tras inicio_cambio
+  progreso: 1.0
+  estancamiento: 0.0
+  regresion: -0.8
+  variacion_por_alumno: [0.6, 1.4]
+
+ruido:
+  sigma_relativo: 0.02    # fracción del rango típico de cada métrica
+  ar1_rho: 0.3
+  ruido_medicion: 0.02
+
+altibajos:                # en todos los perfiles
+  p_recaida_por_sesion: 0.05
+  magnitud_sigma: [1.5, 2.5]
+  duracion_sesiones: [1, 2]
+  oscilacion_perfil_D: 1.5
+
+ambiguos:
+  proporcion: 0.08
+  tipos: [inicio_tardio, pendiente_debil, cambio_de_signo]
+
+ruido_etiqueta: 0.02
+
+# Sección 4: probabilidad de cada trayectoria según la competencia (tendencia, no regla)
+emparejamiento:           # [estancamiento, progreso, regresion]
+  Sarcasmo:             {estancamiento: 0.70, progreso: 0.20, regresion: 0.10}
+  Preguntas recíprocas: {estancamiento: 0.20, progreso: 0.10, regresion: 0.70}
+  Metáfora:             {estancamiento: 0.25, progreso: 0.60, regresion: 0.15}
+  Deixis:               {estancamiento: 0.30, progreso: 0.55, regresion: 0.15}
+
+# Por métrica: pendiente de progreso por sesión, rango típico (escala del ruido),
+# nivel inicial medio y límites físicos.
+metricas:
+  aMLU:                   {pendiente: 0.13,  rango: 5,    inicio: 2.7,  min: 1.0, max: 7.0}
+  latencia_pragmatica_ms: {pendiente: -170,  rango: 5000, inicio: 5100, min: 400, max: 9000}
+  IRC_pct:                {pendiente: 2.5,   rango: 100,  inicio: 19,   min: 0,   max: 100}
+  PEPE:                   {pendiente: 0.07,  rango: 2,    inicio: 0.35, min: 0,   max: 2}
+  pct_DET:                {pendiente: 4.5,   rango: 100,  inicio: 22,   min: 0,   max: 100}
+
+baseline_sigma_relativo: 0.03   # dispersión del nivel inicial entre alumnos (fracción del rango)
