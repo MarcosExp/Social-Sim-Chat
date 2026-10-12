@@ -41,9 +41,10 @@ erDiagram
         text figura
         boolean hubo_respuesta
         text rama
-        smallint accuracy_score "0 literal / 1 asistida / 2 correcta"
-        smallint accuracy_corregido
+        smallint accuracy_score "0 literal o incorrecta / 1 correcta tras ayuda / 2 correcta a la primera"
+        smallint accuracy_corregido "efectivo = COALESCE(corregido, score)"
         int ayudas_solicitadas
         int latencia_ms
+        boolean iniciativa "el menor pregunta o aporta contenido no pedido"
         text texto_respuesta "sensible en caso real (RGPD)"
     }
