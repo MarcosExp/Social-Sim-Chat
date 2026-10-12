@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Evaluación del corpus sintético y comprobaciones antifuga
 (sección 7 de cambios-generador-corpus.md).
 
@@ -7,7 +6,7 @@ class_weight="balanced". Se repite sobre varias semillas del generador.
 
 Uso:
     python src/ml/evaluar_corpus.py --config config.yaml --semillas 10 \
-        --barrido-ruido 0.01 0.02 0.03 0.05 0.07 --out informe_metricas.json
+        --barrido-ruido 0.01 0.02 0.03 0.05 0.07
 """
 from __future__ import annotations
 
@@ -28,7 +27,7 @@ RAIZ = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(RAIZ / "generador"))
 sys.path.insert(0, str(RAIZ / "ml"))
 from generador_corpus_sintetico import cargar_config, generar_corpus  # noqa: E402
-from features import COLUMNAS_FEATURES, RANGO, construir_features  # noqa: E402
+from features import cargar_parametros, columnas_features, construir_features  # noqa: E402
 
 CLASES = ["estancamiento", "progreso", "regresion"]
 
@@ -54,9 +53,10 @@ def cv_predict(X, y, grupos, seed, y_train=None):
     return pred, fold, np.mean(imp, axis=0)
 
 
-def heuristica(F):
-    """Regla de referencia: pendiente de PEPE en la ventana de 4 sesiones."""
-    p = F["PEPE_pendiente"].to_numpy() * RANGO["PEPE"]     # PEPE por sesión
+def heuristica(F, cfg):
+    """Regla de referencia: pendiente de PEPE en la ventana (en PEPE por sesión).
+    < -0,02 regresión; entre -0,02 y +0,02 estancamiento; > +0,02 progreso."""
+    p = F["PEPE_pendiente"].to_numpy() * cargar_parametros(cfg)["rango"]["PEPE"]
     return np.where(p < -0.02, "regresion", np.where(p <= 0.02, "estancamiento", "progreso")).astype(object)
 
 
@@ -99,10 +99,10 @@ def retraso_deteccion(F, pred, meta):
 
 def evaluar_semilla(cfg, seed, completo=True):
     train, meta = generar_corpus(cfg, seed)
-    F = construir_features(train)
+    F = construir_features(train, cfg)
     y = F["etiqueta"].to_numpy(dtype=object)
     g = F["alumno_id"].to_numpy()
-    X = F[COLUMNAS_FEATURES].to_numpy()
+    X = F[columnas_features(cfg)].to_numpy()
 
     pred, fold, imp = cv_predict(X, y, g, seed)
     res = {"real": metricas(y, pred)}
@@ -122,7 +122,7 @@ def evaluar_semilla(cfg, seed, completo=True):
     pp, _, _ = cv_predict(X, y, g, seed, y_train=yp)
     res["permutadas"] = metricas(y, pp)
     # referencia: heurística
-    res["heuristica"] = metricas(y, heuristica(F))
+    res["heuristica"] = metricas(y, heuristica(F, cfg))
     res["deteccion"] = retraso_deteccion(F, pred, meta)
     # desglose: sin ambiguos / cerca del inicio del cambio
     Fm = F.merge(meta, on="alumno_id")
@@ -138,6 +138,22 @@ def evaluar_semilla(cfg, seed, completo=True):
     return res, por_fold, imp, cm
 
 
+# Umbrales cerrados (sección 8 del NF2 / cambios-generador-corpus.md)
+UMBRALES = [
+    # (nombre, función sobre el resultado de una semilla o fold -> bool)
+    ("f1_macro >= 0.75", lambda r: r["real"]["f1_macro"] >= 0.75),
+    ("precision_estancamiento >= 0.65", lambda r: r["real"]["precision_estancamiento"] >= 0.65),
+    ("recall_estancamiento >= 0.65", lambda r: r["real"]["recall_estancamiento"] >= 0.65),
+    ("ventaja_f1_sobre_heuristica >= 0.05", lambda r: r["real"]["f1_macro"] - r["heuristica"]["f1_macro"] >= 0.05),
+    ("tramposo_f1 <= real_f1 - 0.10", lambda r: r["tramposo"]["f1_macro"] <= r["real"]["f1_macro"] - 0.10),
+    ("permutadas_f1 <= 0.40", lambda r: r["permutadas"]["f1_macro"] <= 0.40),
+    ("alumnos_detectados >= 0.90", lambda r: r["deteccion"]["pct_alumnos_detectados"] >= 0.90),
+    ("retraso_mediano <= 4", lambda r: r["deteccion"]["retraso_mediano"] <= 4),
+    ("falsas_alertas_progreso <= 0.15", lambda r: r["deteccion"]["pct_falsa_alerta_progreso"] <= 0.15),
+]
+UMBRALES_FOLD = UMBRALES[:3]   # los que se pueden mirar en una partición suelta
+
+
 def resumen(valores):
     v = np.array(valores, dtype=float)
     return float(np.nanmean(v)), float(np.nanstd(v))
@@ -148,7 +164,7 @@ def main():
     ap.add_argument("--config", default="config.yaml")
     ap.add_argument("--semillas", type=int, default=10)
     ap.add_argument("--barrido-ruido", type=float, nargs="*", default=[])
-    ap.add_argument("--out", default="informe_metricas.json")
+    ap.add_argument("--out", default="reports/informe_metricas.json")
     a = ap.parse_args()
     cfg = cargar_config(a.config)
     semillas = [cfg["seed"] + i for i in range(a.semillas)]
@@ -159,6 +175,18 @@ def main():
         todo.append(r); folds.extend(pf); imps.append(imp); cms.append(cm)
 
     informe = {"semillas": semillas, "modelos": {}, "barrido_ruido": {}}
+
+    # valores por semilla y % de semillas que cumple cada umbral
+    claves = ("accuracy", "f1_macro", "precision_estancamiento", "recall_estancamiento")
+    informe["por_semilla"] = [
+        {"semilla": s, **{f"{n}_{k}": round(t[n][k], 4) for n in ("real", "heuristica", "tramposo", "permutadas") for k in claves},
+         **{k: round(v, 4) for k, v in t["deteccion"].items()}}
+        for s, t in zip(semillas, todo)]
+    informe["cumplimiento_umbrales"] = {
+        "sobre_la_media": None,  # se rellena abajo
+        "pct_semillas": {n: float(np.mean([f(t) for t in todo])) for n, f in UMBRALES},
+        "pct_folds_sueltos": {n: float(np.mean([f({"real": fo}) for fo in folds])) for n, f in UMBRALES_FOLD},
+    }
     print(f"== {len(semillas)} semillas × 5 folds por alumno ==")
     print("Distribución de etiquetas:", {k: round(np.mean([t['distribucion'].get(k, 0) for t in todo]), 3) for k in CLASES})
     for nombre in ["real", "sin_ambiguos", "heuristica", "tramposo", "permutadas"]:
@@ -177,6 +205,15 @@ def main():
         m, sd = resumen([f[k] for f in folds])
         informe["por_fold"][k] = {"media": m, "sd": sd}
         print(f"  {k}: {m:.2f} ± {sd:.2f}")
+    media = {n: {k: v["media"] for k, v in d.items()} for n, d in informe["modelos"].items()}
+    media["deteccion"] = {k: float(np.nanmean([t["deteccion"][k] for t in todo])) for k in todo[0]["deteccion"]}
+    informe["cumplimiento_umbrales"]["sobre_la_media"] = {n: bool(f(media)) for n, f in UMBRALES}
+    print("\nCumplimiento de umbrales (sobre la media | % semillas | % folds sueltos):")
+    for n, _ in UMBRALES:
+        c = informe["cumplimiento_umbrales"]
+        pf = c["pct_folds_sueltos"].get(n)
+        print(f"  {n:38s} {'sí' if c['sobre_la_media'][n] else 'NO':3s} | {c['pct_semillas'][n]*100:5.0f} % | "
+              + (f"{pf*100:5.0f} %" if pf is not None else "    —"))
     m, _ = resumen([t["mayoritaria"] for t in todo])
     informe["clase_mayoritaria"] = m
     print(f"\nClase mayoritaria (sesiones 4-15): {m:.2f}")
@@ -189,7 +226,7 @@ def main():
         m, sd = resumen([t[k] for t in todo])
         informe[k] = {"media": m, "sd": sd}
         print(f"  {k}: {m:.2f} ± {sd:.2f}")
-    imp = pd.Series(np.mean(imps, axis=0), index=COLUMNAS_FEATURES).sort_values(ascending=False)
+    imp = pd.Series(np.mean(imps, axis=0), index=columnas_features(cfg)).sort_values(ascending=False)
     informe["importancias"] = imp.round(4).to_dict()
     print("\nImportancia de variables (top 6):"); print(imp.head(6).round(3).to_string())
     cm = np.sum(cms, axis=0)
@@ -207,6 +244,7 @@ def main():
             informe["barrido_ruido"][str(sg)] = fila
             print(f"  sigma={sg:.2f}  " + "  ".join(f"{k}={v['media']:.2f}±{v['sd']:.2f}" for k, v in fila.items()))
 
+    Path(a.out).parent.mkdir(parents=True, exist_ok=True)
     Path(a.out).write_text(json.dumps(informe, indent=2, ensure_ascii=False), encoding="utf-8")
     print(f"\nInforme: {a.out}")
 
