@@ -1,0 +1,50 @@
+erDiagram
+    student_profile_sim ||--o{ session_data : "tiene sesiones"
+    session_data ||--o{ turn_data : "tiene turnos"
+
+    student_profile_sim {
+        text student_id PK "pseudonimizado"
+        text arquetipo "A / B / C / D"
+        text competencia_objetivo "solo generacion, no es feature"
+        text trayectoria_disenada "progreso / estancamiento / regresion, solo generacion"
+        text nivel_ruido "bajo / medio / alto"
+        boolean ambiguo "trayectoria ambigua"
+        int sesion_inicio_evento "sesion desde la que aplica la trayectoria"
+        text tramo_edad "6-8 / 8-10 / 10-12"
+        int n_sesiones
+    }
+
+    session_data {
+        uuid session_id PK
+        text student_id FK
+        int sesion_num UK "UNIQUE con student_id"
+        date fecha
+        text competencia "para el dashboard, no es feature"
+        text personaje
+        real amlu "feature"
+        real latencia_pragmatica_ms "feature"
+        real irc_pct "feature"
+        real pepe "feature"
+        real pct_det "feature"
+        text etiqueta_real_disenada "verdad de diseno, progreso antes de sesion_inicio_evento, no es feature"
+        text etiqueta_prediccion "salida del clasificador"
+        real confianza_prediccion
+        text etiqueta_corregida "correccion del terapeuta"
+        text nota_clinica "sensible en caso real (RGPD)"
+    }
+
+    turn_data {
+        bigint turn_id PK
+        uuid session_id FK
+        int turno_num
+        text tipo "apertura / competencia"
+        text figura
+        boolean hubo_respuesta
+        text rama
+        smallint accuracy_score "0 literal o incorrecta / 1 correcta tras ayuda / 2 correcta a la primera"
+        smallint accuracy_corregido "efectivo = COALESCE(corregido, score)"
+        int ayudas_solicitadas
+        int latencia_ms
+        boolean iniciativa "el menor pregunta o aporta contenido no pedido"
+        text texto_respuesta "sensible en caso real (RGPD)"
+    }
