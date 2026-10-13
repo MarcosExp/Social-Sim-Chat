@@ -1,0 +1,6 @@
+# Versiones con las que se obtienen las cifras del documento de NF2.
+# Cambiar scikit-learn altera el RandomForest (ver README, "Usa las versiones fijadas").
+numpy==2.5.3
+pandas==3.0.5
+pyyaml==6.0.3
+scikit-learn==1.9.1
