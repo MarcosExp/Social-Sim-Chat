@@ -1,7 +1,6 @@
 """ADR-003: el dashboard solo habla con la API. Estas pruebas fallan si vuelve a abrir Postgres o a leer ficheros del modelo,
 y comprueban de extremo a extremo la consola del terapeuta (dashboard -> API -> recálculo de métricas)."""
 import re
-import sys
 from pathlib import Path
 
 import pytest

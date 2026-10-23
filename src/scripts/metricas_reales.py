@@ -19,7 +19,7 @@ from sqlalchemy import select, text
 
 from app import metricas
 from app.db import SessionLocal, engine
-from app.models import Conversacion, SessionData
+from app.models import Conversacion
 
 COLS = ["aMLU", "latencia_pragmatica_ms", "IRC_pct", "PEPE", "pct_DET"]
 # Nombre de la feature (pipeline) -> columna de la BD (ER v2, minúsculas)

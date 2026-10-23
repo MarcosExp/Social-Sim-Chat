@@ -15,13 +15,11 @@ También puedes ejecutarlo contra el contenedor en marcha:
 from __future__ import annotations
 
 import argparse
-import json
 import uuid
 from pathlib import Path
 
 from sqlalchemy import text
 
-from app.config import settings
 from app.db import SessionLocal
 
 SRC = Path(__file__).resolve().parent.parent

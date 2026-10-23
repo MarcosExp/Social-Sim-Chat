@@ -7,7 +7,7 @@ from sqlalchemy import text
 
 from app.config import settings
 from tests.test_api_conversacion import crear
-from tests.test_api_dashboard import AUTOR, _prediccion, _sesion_sintetica
+from tests.test_api_dashboard import AUTOR, _sesion_sintetica
 from tests.test_er_v2 import _terminar_con, _vista
 
 CLAVE = "clave-de-prueba"
@@ -73,7 +73,7 @@ def test_cada_correccion_deja_rastro_con_autor_y_valores(cliente, alumno, fake, 
 
 
 def test_repetir_el_mismo_valor_no_ensucia_el_historial(cliente, alumno, fake, bd):
-    cid = _terminar_con(cliente, fake, alumno, ())
+    _terminar_con(cliente, fake, alumno, ())
     sid = cliente.get("/sessions", params={"student_id": alumno, "origen": "real"}).json()[0]["session_id"]
     for _ in range(2):
         cliente.patch(f"/sessions/{sid}/correccion", json={"etiqueta_corregida": "progreso"}, headers=AUTOR)

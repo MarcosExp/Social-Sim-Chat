@@ -3,7 +3,6 @@ conversaciones, figuras) y de escritura (correcciones del terapeuta, con recálc
 import json
 import uuid
 
-import pytest
 from sqlalchemy import text
 
 from app.config import settings
