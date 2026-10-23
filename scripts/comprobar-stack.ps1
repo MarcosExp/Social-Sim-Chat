@@ -2,6 +2,9 @@
 #   powershell -ExecutionPolicy Bypass -File scripts\comprobar-stack.ps1
 #   Opcional: -EsperadoTurnData "208|38" exige ese recuento exacto (filas|conversaciones) de la vista turn_data;
 #   sin el, basta con que la vista sea accesible (0|0 es normal en una instalacion nueva).
+#   El recuento es de TU base de datos, no del repo: cambia cuando se crean conversaciones o cuando el generador de turnos
+#   (migracion 013) carga turnos sinteticos. Ejecuta el script sin el parametro, lee el valor real y pasalo solo si cuadra
+#   con lo que esperabas; no lo guardes en ficheros compartidos.
 param([string]$EsperadoTurnData = "")
 $ErrorActionPreference = "Continue"
 $compose = "environment/docker-compose.yml"
