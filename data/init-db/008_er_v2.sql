@@ -18,7 +18,14 @@ ALTER TABLE student_profile_sim ADD COLUMN IF NOT EXISTS nivel_ruido  TEXT;   --
 DO $$ BEGIN
   IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = current_schema()
              AND table_name = 'student_profile_sim' AND column_name = 'inicio_cambio') THEN
-    ALTER TABLE student_profile_sim RENAME COLUMN inicio_cambio TO sesion_inicio_evento;
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = current_schema()
+               AND table_name = 'student_profile_sim' AND column_name = 'sesion_inicio_evento') THEN
+      -- ya renombrada: una versión anterior de la 002 la volvía a crear al reaplicar la cadena; se funden y se descarta la vieja
+      UPDATE student_profile_sim SET sesion_inicio_evento = COALESCE(sesion_inicio_evento, inicio_cambio);
+      ALTER TABLE student_profile_sim DROP COLUMN inicio_cambio;
+    ELSE
+      ALTER TABLE student_profile_sim RENAME COLUMN inicio_cambio TO sesion_inicio_evento;
+    END IF;
   END IF;
 END $$;
 UPDATE student_profile_sim
@@ -88,7 +95,7 @@ BEGIN
   IF to_regclass('session_real') IS NOT NULL THEN
     INSERT INTO session_data (session_id, student_id, sesion_num, competencia, personaje, fecha,
                               amlu, latencia_pragmatica_ms, irc_pct, pepe, pct_det, pct_det_observado_en_turnos,
-                              etiqueta_real_disenada, turnos, origen, conversacion_id,
+                              etiqueta_real_disenada, origen, conversacion_id,
                               n_turnos_menor, n_turnos_evaluados, n_figuras, n_turnos_amlu, lpp_intento1, lpp_intento2,
                               definicion_version, created_at)
     SELECT gen_random_uuid(), r.student_id,
@@ -96,7 +103,7 @@ BEGIN
                                      WHERE s.student_id = r.student_id AND s.origen = 'sintetico'), 0),
            r.competencia, c.personaje, r.created_at::date,
            r."aMLU", r.latencia_pragmatica_ms, r."IRC_pct", r."PEPE", r."pct_DET", r."pct_DET_observado_en_turnos",
-           NULL, NULL, 'real', r.conversacion_id,
+           NULL, 'real', r.conversacion_id,
            r.n_turnos_menor, r.n_turnos_evaluados, r.n_figuras, r.n_turnos_amlu, r.lpp_intento1, r.lpp_intento2,
            r.definicion_version, r.created_at
       FROM session_real r JOIN conversacion c USING (conversacion_id)

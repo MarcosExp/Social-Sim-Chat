@@ -26,6 +26,7 @@ Módulo C088 · Curso de Especialización en IA y Big Data (iFP) · Grupo 12: Á
 - **Predicción sobre sesiones reales:** no se hace. `GET /students/{id}/prediccion` devuelve `disponible:false` con los motivos (hacen falta 4 sesiones reales, `pct_DET` es provisional, el evaluador del 0/1/2 no está validado).
 - **Autenticación:** una clave compartida (`X-API-Key`) y un nombre de autor (`X-Terapeuta`) sin verificar. No hay usuarios ni roles.
 - **Silencios** del menor no se registran; la **nota clínica no está cifrada**; no hay predicción en línea.
+- **Margen estrecho del clasificador:** cumple los umbrales (F1-macro ≥ 0,75, recall y precisión de estancamiento ≥ 0,65) con la semilla por defecto, pero el recall de estancamiento queda cerca del límite y varía con la semilla (réplica de 10 semillas en `docs/validacion/`).
 - El evaluador 0/1/2 (LLM) se validó con baterías propias, no con conversaciones reales anotadas: [`docs/informe-validacion-metricas-reales.md`](docs/informe-validacion-metricas-reales.md).
 - Las fórmulas de las métricas reales son una propuesta explícita y revisable: [`docs/metricas-reales.md`](docs/metricas-reales.md).
 
@@ -38,7 +39,7 @@ git clone https://github.com/cCoolBoox/social-sim-chat-nf3 && cd social-sim-chat
 make up       # crea environment/.env si falta, construye y levanta Postgres + backend + dashboard
 make seed     # genera el corpus sintético (100 alumnos, 1500 sesiones) y lo carga en Postgres
 make train    # entrena el clasificador y escribe las predicciones (~30 s)
-make verify   # conteos en BD y estado del modelo: debe salir 100 / 1500 / 1200 y «cumple» según métricas
+make verify   # conteos en BD (100 / 1500 / 1200) y métricas del modelo; con la semilla por defecto cumple los tres umbrales
 make test     # 158 tests de contrato con un Ollama simulado (no necesita GPU ni modelo)
 ```
 
