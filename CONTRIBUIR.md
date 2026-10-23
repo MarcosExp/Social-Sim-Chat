@@ -35,7 +35,7 @@ git push -u origin entrega-nf3                       # y PR entrega-nf3 -> main 
 
 - Resolver los conflictos a mano. **No usar `-X theirs`**: `src/ml/` del repo académico es más reciente que la copia de nf3 (ver `src/generador/ORIGEN.md`) y se pisaría.
 - Se conserva el historial de los dos repos (el de Marcos y el de nf3).
-- Del repo académico siguen existiendo `config.yaml`, `requirements.txt`, los diagramas de NF2 (`docs/er.*`, `docs/arquitectura.*`) y los documentos de NF2; hay que decidir qué se queda y qué se mueve a una carpeta de historial para que el ER vigente (`docs/er_v2.*`) sea el único a la vista.
+- Del repo académico siguen existiendo `config.yaml`, `requirements.txt` (fija otras versiones que `src/requirements.txt`; su numpy 2.5.3 no se instala en la imagen `python:3.11-slim`, así que hay que alinearlo o retirarlo), los diagramas de NF2 (`docs/er.*`, `docs/arquitectura.*`) y los documentos de NF2; hay que decidir qué se queda y qué se mueve a una carpeta de historial para que el ER vigente (`docs/er_v2.*`) sea el único a la vista.
 - Escribir en el repo académico requiere permiso de Marcos.
 
 Autoría y licencia: ver [`AUTORIA.md`](AUTORIA.md).
