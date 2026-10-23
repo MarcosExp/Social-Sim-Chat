@@ -66,8 +66,8 @@ src/dashboard/ dashboard Streamlit (solo vía API, ADR-003)
 src/generador/ src/ml/   corpus sintético y features antifuga (Marcos; ver src/generador/ORIGEN.md)
 src/scripts/   seed_corpus, train_classifier, metricas_reales, bateria_valoracion, smoke_conversacion, mock_api_chat
 src/tests/     pytest (contrato, ER v2, dashboard, límites, métricas, chat estático)
-docs/          ER v2 (er_v2.mmd/.png, generado del esquema real), contrato de las APIs, métricas reales, informe de validación,
-               informes de Marcos y réplica
+docs/          ER v2 (generado del esquema real), arquitectura v2, ADR-001/002/003 (docs/adr/), contrato de las APIs,
+               métricas reales, informe de validación, informes de Marcos y réplica
 scripts/       instalación y comprobación (setup-local.*, test-local.ps1, comprobar-stack.ps1)
 ```
 
@@ -79,4 +79,4 @@ Stack: Python 3.11 · FastAPI · SQLAlchemy · PostgreSQL 16 · scikit-learn · 
 2. **Intento por fila:** vista `turn_data` sobre `conversacion_turno`.
 3. **Dashboard solo por API:** no abre Postgres ni lee ficheros del modelo.
 
-El código cita las ADR-001/002/003 (ER v2, vista `turn_data`, dashboard solo por API). Su texto completo está en la documentación del NF2 y **todavía no está en este repositorio** (pendiente de incorporarlo a `docs/adr/`).
+Cada decisión tiene su ADR en [`docs/adr/`](docs/adr/): [ADR-001](docs/adr/ADR-001_session_data_unica_con_origen.md) (`session_data` única con `origen`), [ADR-002](docs/adr/ADR-002_turn_data_vista_sobre_intentos.md) (`turn_data` como vista) y [ADR-003](docs/adr/ADR-003_dashboard_solo_por_api.md) (dashboard solo por API). Arquitectura: [`docs/arquitectura_v2.mmd`](docs/arquitectura_v2.mmd) (imagen: [`.png`](docs/arquitectura_v2.png)); modelo de datos: [`docs/er_v2.mmd`](docs/er_v2.mmd).

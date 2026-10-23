@@ -24,6 +24,15 @@ Origen: `MarcosExp/Social-Sim-Chat`, PR #2, commit `5d85eb0` (12/10/2026). Detal
   (transcripción de `Guiones_Dialogo.md`, NF1): trabajo del equipo en el entregable NF1.
 - `data/init-db/001_schema.sql`: esquema inicial del NF2.
 
+## Uso de inteligencia artificial
+Declarado según las instrucciones de entrega del módulo (el uso de IA está permitido y debe indicarse dónde y cómo):
+- **Claude (Anthropic), como asistente de programación** con Claude Code: escritura y revisión de código del backend, dashboard, migraciones, scripts y tests (Álvaro), depuración, refactorizaciones y generación de la documentación técnica (ADR, contratos de API, informes de validación, este repositorio). El autor ejecutó y verificó el resultado (tests y pruebas manuales en su entorno); la suite tiene 159 pruebas.
+- **LLM local (Ollama, modelo `qwen3:14b`) como parte del producto**, no como herramienta de desarrollo: genera la variación de frase y la valoración 0/1/2 del turno del menor durante la conversación.
+- **Código de Marcos** (`src/generador/`, `src/ml/`): su uso de IA, si lo hubo, lo declara él en su parte de la memoria.
+
+## Terceros
+Software que se usa pero **no se redistribuye** en este repositorio (cada uno con su licencia): Python, FastAPI, SQLAlchemy, Pydantic, PostgreSQL 16, Streamlit, Plotly, pandas, NumPy, scikit-learn, joblib, httpx, PyYAML, pytest, Docker, Ollama y el modelo Qwen3 (Alibaba Cloud). Versiones fijadas en `src/requirements*.txt`.
+
 ## Licencia
 
 **No hay licencia todavía.** Sin licencia, todos los derechos quedan reservados por sus autores y nadie más puede
