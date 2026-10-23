@@ -1,5 +1,8 @@
 ﻿# Comprueba el stack de SOCIAL-SIM Chat. Ejecutar desde la raiz del repo:
 #   powershell -ExecutionPolicy Bypass -File scripts\comprobar-stack.ps1
+#   Opcional: -EsperadoTurnData "208|38" exige ese recuento exacto (filas|conversaciones) de la vista turn_data;
+#   sin el, basta con que la vista sea accesible (0|0 es normal en una instalacion nueva).
+param([string]$EsperadoTurnData = "")
 $ErrorActionPreference = "Continue"
 $compose = "environment/docker-compose.yml"
 $envFile = "environment/.env"
@@ -73,7 +76,8 @@ Resultado ($null -ne $pg -and $pg.disponible -eq $false) "puerta de prediccion r
 
 Write-Host "`n== Base de datos ==" -ForegroundColor Cyan
 $v = Sql "SELECT count(*) || '|' || count(DISTINCT conversacion_id) FROM turn_data;"
-Resultado ($v.Trim() -match '^\d+\|\d+$') "vista turn_data accesible (filas|conversaciones = $v; 0|0 es normal en una instalacion nueva)" "Aplica 009, 010 y 011"
+if ($EsperadoTurnData) { Resultado ($v.Trim() -eq $EsperadoTurnData) "turn_data = $v (esperado $EsperadoTurnData)" "Aplica 009, 010 y 011; si has hecho mas conversaciones el recuento sera mayor" }
+else { Resultado ($v.Trim() -match '^\d+\|\d+$') "vista turn_data accesible (filas|conversaciones = $v; 0|0 es normal en una instalacion nueva)" "Aplica 009, 010 y 011" }
 $t = Sql "SELECT count(*) FROM information_schema.columns WHERE table_name='session_data' AND column_name='turnos';"
 Resultado ($t.Trim() -eq "0") "session_data sin columna turnos (migracion 012)" "Aplica 012_quitar_turnos_jsonb.sql"
 $c = Sql "SELECT count(*) FROM information_schema.columns WHERE table_name='turn_data' AND column_name IN ('hubo_respuesta','es_prueba');"
