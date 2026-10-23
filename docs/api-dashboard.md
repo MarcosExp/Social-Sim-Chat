@@ -14,7 +14,7 @@ El dashboard solo habla con esta API (REST JSON; documentación interactiva en `
 | `GET /resumen` | conteos y distribuciones de la cabecera |
 | `GET /students`, `GET /students/{id}` | alumnos simulados |
 | `GET /students/{id}/prediccion` | puerta de predicción sobre sesiones **reales**: `disponible`, `ventana_requerida`, conteos y `motivos` |
-| `GET /sessions` (`origen`, `student_id`, `sin_turnos`), `GET /sessions/by-student/{id}` | sesiones (sin `nota_clinica`) |
+| `GET /sessions` (`origen`, `student_id`), `GET /sessions/by-student/{id}` | sesiones (sin `nota_clinica`) |
 | `GET /sessions/{id}` | detalle, con `nota_clinica` (dato sensible) |
 | `GET /predicciones` (`student_id`, `modelo_version`, `todas_las_versiones`) | por defecto, la última versión del modelo |
 | `GET /modelo/metricas` | métricas y anti-fuga (404 `modelo_no_entrenado` si no hay modelo) |

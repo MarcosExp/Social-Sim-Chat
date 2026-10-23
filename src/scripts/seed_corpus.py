@@ -61,9 +61,8 @@ def corpus_marcos(seed: int | None):
         latencia_pragmatica_ms=train["latencia_pragmatica_ms"],
         pct_DET_observado_en_turnos=None,   # este generador no produce turnos
         etiqueta_real_disenada=train["etiqueta"].map(ETIQUETA),
-        turnos=None,
     )[["session_id", "student_id", "sesion_num", "competencia", "aMLU", "latencia_pragmatica_ms", "IRC_pct",
-       "PEPE", "pct_DET", "pct_DET_observado_en_turnos", "etiqueta_real_disenada", "turnos"]]
+       "PEPE", "pct_DET", "pct_DET_observado_en_turnos", "etiqueta_real_disenada"]]
     return perfiles, sesiones
 
 
@@ -80,6 +79,9 @@ def seed(generador: str, n_por_arquetipo: int, seed: int | None, reset: bool) ->
         df_perfiles, df_sesiones = corpus_heredado(n_por_arquetipo, 42 if seed is None else seed)
     df_perfiles = df_perfiles.astype(object).where(df_perfiles.notna(), None)
     df_sesiones = df_sesiones.astype(object).where(df_sesiones.notna(), None)
+    if "turnos" in df_sesiones:   # el generador heredado los trae; el ER v2 no los guarda en session_data (migración 012)
+        print("Aviso: se descartan los turnos del generador heredado (session_data ya no tiene columna `turnos`).")
+        df_sesiones = df_sesiones.drop(columns=["turnos"])
     for col in ("sesion_inicio_evento", "n_sesiones"):
         if col in df_perfiles:
             df_perfiles[col] = [None if v is None else int(v) for v in df_perfiles[col]]
@@ -105,7 +107,7 @@ def seed(generador: str, n_por_arquetipo: int, seed: int | None, reset: bool) ->
             )
 
         for _, row in df_sesiones.iterrows():
-            data = row.to_dict()  # `turnos` ya es un string JSON serializado por el generador
+            data = row.to_dict()
             data["etiqueta_real_disenada"] = etiqueta_db(data["etiqueta_real_disenada"])
             db.execute(
                 text(
@@ -113,11 +115,11 @@ def seed(generador: str, n_por_arquetipo: int, seed: int | None, reset: bool) ->
                     INSERT INTO session_data
                         (session_id, student_id, sesion_num, competencia, origen, amlu,
                          latencia_pragmatica_ms, irc_pct, pepe, pct_det,
-                         pct_det_observado_en_turnos, etiqueta_real_disenada, turnos)
+                         pct_det_observado_en_turnos, etiqueta_real_disenada)
                     VALUES
                         (:session_id, :student_id, :sesion_num, :competencia, 'sintetico', :aMLU,
                          :latencia_pragmatica_ms, :IRC_pct, :PEPE, :pct_DET,
-                         :pct_DET_observado_en_turnos, :etiqueta_real_disenada, CAST(:turnos AS JSONB))
+                         :pct_DET_observado_en_turnos, :etiqueta_real_disenada)
                     ON CONFLICT (student_id, sesion_num) DO NOTHING
                     """
                 ),

@@ -1,6 +1,6 @@
 -- SOCIAL-SIM Chat — esquema inicial de datos
--- (HISTÓRICO: la estructura vigente resulta de aplicar 001→011; ver el ER v2 y los ADR-001/002/003 del NF2 (documentación de la entrega).
---  `turnos` JSONB sigue aquí pero hoy está vacío; la vista `turn_data` es la 009.)
+-- (HISTÓRICO: la estructura vigente resulta de aplicar 001→012; ver el ER v2 y los ADR-001/002/003 del NF2 (documentación de la entrega).
+--  `turnos` JSONB se elimina en la 012; la vista `turn_data` es la 009.)
 -- Coherente con el ER del NF2 (repo académico MarcosExp/Social-Sim-Chat, NF1/Entregables)
 -- y con el formato de salida de generador_corpus_sintetico.py:
 --   - `turnos` se mantiene embebido como JSONB en session_data (decisión por

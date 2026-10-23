@@ -52,7 +52,7 @@ class SessionDataOut(BaseModel):
     lpp_intento2: int | None = None
     definicion_version: str | None = None
     created_at: datetime | None = None
-    turnos: list | None = None          # `nota_clinica` NO se expone en los listados (dato sensible)
+    # `nota_clinica` NO se expone en los listados (dato sensible). Los turnos de una sesión real están en /conversaciones/{id}.
 
 
 class SessionDetalleOut(SessionDataOut):

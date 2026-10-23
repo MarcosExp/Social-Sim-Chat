@@ -11,7 +11,7 @@ Módulo C088 · Curso de Especialización en IA y Big Data (iFP) · Grupo 12: Á
 
 | Pieza | Dónde | Estado |
 |---|---|---|
-| Base de datos PostgreSQL 16, migraciones 001→011 | `data/init-db/` | Implementada. ER v2: una sola tabla `session_data` con `origen` (`sintetico`/`real`) |
+| Base de datos PostgreSQL 16, migraciones 001→012 | `data/init-db/` | Implementada. ER v2: una sola tabla `session_data` con `origen` (`sintetico`/`real`) |
 | Backend FastAPI (alumnos, sesiones, conversación, correcciones, modelo, predicciones, resumen) | `src/app/` | Implementado. Contrato: [`docs/api-dashboard.md`](docs/api-dashboard.md), [`docs/api-conversacion.md`](docs/api-conversacion.md) |
 | Chat del menor (HTML estático servido por el backend) | `src/app/static/chat/` → `http://localhost:8010/chat/` | Implementado; **necesita un LLM** (Ollama) para responder |
 | Dashboard del terapeuta (Streamlit, solo habla con la API) | `src/dashboard/` → `http://localhost:8501` | Implementado |
@@ -59,13 +59,14 @@ en el stack (solo en los tests): está pendiente de decidir quién lo hace.
 
 ```
 environment/   docker-compose.yml, Dockerfiles y .env.example
-data/init-db/  migraciones SQL 001→011 (001 es histórica; la estructura vigente es la suma)
+data/init-db/  migraciones SQL 001→012 (001 es histórica; la estructura vigente es la suma)
 src/app/       backend FastAPI (routers/, guiones/guiones.json, static/chat/)
 src/dashboard/ dashboard Streamlit (solo vía API, ADR-003)
 src/generador/ src/ml/   corpus sintético y features antifuga (Marcos; ver src/generador/ORIGEN.md)
 src/scripts/   seed_corpus, train_classifier, metricas_reales, bateria_valoracion, smoke_conversacion, mock_api_chat
 src/tests/     pytest (contrato, ER v2, dashboard, límites, métricas, chat estático)
-docs/          contrato de las APIs, métricas reales, informe de validación, informes de Marcos y réplica
+docs/          ER v2 (er_v2.mmd/.png, generado del esquema real), contrato de las APIs, métricas reales, informe de validación,
+               informes de Marcos y réplica
 scripts/       instalación y comprobación (setup-local.*, test-local.ps1, comprobar-stack.ps1)
 ```
 

@@ -24,7 +24,7 @@ from sqlalchemy import (
     func,
     UniqueConstraint,
 )
-from sqlalchemy.dialects.postgresql import JSONB, UUID
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db import Base
@@ -76,7 +76,6 @@ class SessionData(Base):
     etiqueta_prediccion: Mapped[str | None] = mapped_column(String, nullable=True)      # última predicción (ER NF2; historial en classifier_predictions)
     confianza_prediccion: Mapped[float | None] = mapped_column(Numeric(4, 3), nullable=True)
     nota_clinica: Mapped[str | None] = mapped_column(Text, nullable=True)               # sensible (RGPD)
-    turnos: Mapped[list | None] = mapped_column(JSONB, nullable=True)
     origen: Mapped[str] = mapped_column(String, nullable=False, default="sintetico", server_default="sintetico")
     conversacion_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("conversacion.conversacion_id", ondelete="CASCADE"), nullable=True)

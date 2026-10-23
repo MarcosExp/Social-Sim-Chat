@@ -73,7 +73,9 @@ Resultado ($null -ne $pg -and $pg.disponible -eq $false) "puerta de prediccion r
 
 Write-Host "`n== Base de datos ==" -ForegroundColor Cyan
 $v = Sql "SELECT count(*) || '|' || count(DISTINCT conversacion_id) FROM turn_data;"
-Resultado ($v.Trim() -eq "208|38") "turn_data = $v (esperado 208|38 con tus datos de hoy; si has hecho mas conversaciones sera mayor)" "Aplica 009, 010 y 011 (ver cambios_stack_ER_v2.md)"
+Resultado ($v.Trim() -match '^\d+\|\d+$') "vista turn_data accesible (filas|conversaciones = $v; 0|0 es normal en una instalacion nueva)" "Aplica 009, 010 y 011"
+$t = Sql "SELECT count(*) FROM information_schema.columns WHERE table_name='session_data' AND column_name='turnos';"
+Resultado ($t.Trim() -eq "0") "session_data sin columna turnos (migracion 012)" "Aplica 012_quitar_turnos_jsonb.sql"
 $c = Sql "SELECT count(*) FROM information_schema.columns WHERE table_name='turn_data' AND column_name IN ('hubo_respuesta','es_prueba');"
 Resultado ($c.Trim() -eq "2") "vista turn_data con hubo_respuesta y es_prueba" "Vuelve a aplicar 009_vista_turn_data.sql"
 $p = Sql "SELECT count(*) || '|' || count(etiqueta_prediccion) FROM session_data WHERE origen='sintetico';"

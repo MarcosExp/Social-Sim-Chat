@@ -1,0 +1,129 @@
+erDiagram
+    student_profile_sim {
+        text student_id PK
+        text competencia_objetivo
+        text trayectoria_disenada
+        text tramo_edad
+        int n_sesiones
+        timestamptz created_at
+        int sesion_inicio_evento
+        bool ambiguo
+        text tipo_ambiguo
+        text arquetipo
+        text nivel_ruido
+    }
+    session_data {
+        uuid session_id PK
+        text student_id FK
+        int sesion_num
+        text competencia
+        numeric amlu
+        int latencia_pragmatica_ms
+        numeric irc_pct
+        numeric pepe
+        numeric pct_det
+        numeric pct_det_observado_en_turnos
+        text etiqueta_real_disenada
+        timestamptz created_at
+        date fecha
+        text personaje
+        text etiqueta_corregida
+        text nota_clinica
+        text origen
+        uuid conversacion_id FK
+        int n_turnos_menor
+        int n_turnos_evaluados
+        int n_figuras
+        int n_turnos_amlu
+        int lpp_intento1
+        int lpp_intento2
+        text definicion_version
+        text etiqueta_prediccion
+        numeric confianza_prediccion
+    }
+    classifier_predictions {
+        bigint id PK
+        text student_id FK
+        uuid session_id FK
+        text modelo_version
+        text etiqueta_predicha
+        numeric confianza
+        bool es_estancamiento_operacional
+        timestamptz predicted_at
+    }
+    conversacion {
+        uuid conversacion_id PK
+        text student_id FK
+        text competencia
+        text personaje
+        text alias
+        text estado
+        text nodo_actual
+        int intento
+        text guion_version
+        text modelo
+        timestamptz created_at
+        timestamptz updated_at
+        bool es_prueba
+    }
+    conversacion_turno {
+        bigint id PK
+        uuid conversacion_id FK
+        int orden
+        text rol
+        text nodo
+        text tipo
+        int intento
+        text texto
+        smallint evaluacion
+        text evaluacion_origen
+        text rama
+        int latencia_ms
+        int llm_ms
+        timestamptz created_at
+        text evaluador_version
+        text guarda_patron
+        bool iniciativa
+        smallint accuracy_corregido
+        int ayudas_solicitadas
+    }
+    correccion_log {
+        bigint id PK
+        timestamptz fecha
+        text autor
+        text tipo
+        uuid conversacion_id FK
+        int orden
+        uuid session_id FK
+        text campo
+        text valor_anterior
+        text valor_nuevo
+    }
+    turn_data {
+        bigint turn_id
+        uuid session_id
+        uuid conversacion_id
+        int turno_num
+        text tipo
+        text figura
+        text rama
+        smallint accuracy_score
+        smallint accuracy_corregido
+        smallint accuracy_efectivo
+        int ayudas_solicitadas
+        bigint n_intentos
+        int latencia_ms
+        int latencia_ms_intento2
+        bool iniciativa
+        text texto_respuesta
+        bool es_prueba
+        bool hubo_respuesta
+    }
+    student_profile_sim ||--o{ session_data : "tiene"
+    student_profile_sim ||--o{ conversacion : "conversa"
+    conversacion ||--o{ conversacion_turno : "contiene"
+    conversacion |o--o| session_data : "origina sesion real"
+    session_data ||--o{ classifier_predictions : "historial de predicciones"
+    student_profile_sim ||--o{ classifier_predictions : "predice"
+    session_data ||--o{ correccion_log : "corrige"
+    conversacion_turno ||--o{ turn_data : "vista una fila por figura"

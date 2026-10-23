@@ -2,8 +2,7 @@ import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select
-from sqlalchemy.orm import Session, defer
-from sqlalchemy.orm.attributes import set_committed_value
+from sqlalchemy.orm import Session
 
 from app.db import get_db
 from app.seguridad import autor_correccion, exigir_terapeuta
@@ -17,21 +16,14 @@ router = APIRouter(prefix="/sessions", tags=["sessions"], dependencies=[Depends(
 def list_sessions(
     student_id: str | None = Query(default=None),
     origen: str | None = Query(default=None, pattern="^(sintetico|real)$"),
-    sin_turnos: bool = Query(default=False, description="Omite el JSON `turnos` (pesa mucho en el corpus heredado)."),
     db: Session = Depends(get_db),
 ) -> list[SessionData]:
     stmt = select(SessionData).order_by(SessionData.student_id, SessionData.sesion_num)
-    if sin_turnos:
-        stmt = stmt.options(defer(SessionData.turnos))
     if student_id is not None:
         stmt = stmt.where(SessionData.student_id == student_id)
     if origen is not None:
         stmt = stmt.where(SessionData.origen == origen)
-    filas = list(db.scalars(stmt))
-    if sin_turnos:
-        for f in filas:
-            set_committed_value(f, "turnos", None)          # evita una consulta por fila al serializar
-    return filas
+    return list(db.scalars(stmt))
 
 
 @router.get("/by-student/{student_id}", response_model=list[SessionDataOut])

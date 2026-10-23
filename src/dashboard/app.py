@@ -126,7 +126,7 @@ with tab_alumno:
                 for motivo in gate["motivos"]:
                     st.markdown(f"- {motivo}")
                 st.caption("Las etiquetas predichas de la tabla corresponden al corpus sintético, calculadas por lotes con `make train`.")
-        ses = df(api.leer(f"/sessions/by-student/{sel}", sin_turnos=True))
+        ses = df(api.leer(f"/sessions/by-student/{sel}"))
         pred = df(api.leer("/predicciones", student_id=sel))
         if ses.empty:
             st.info("Este alumno no tiene sesiones.")
@@ -220,17 +220,19 @@ with tab_conv:
         sint_alumno = df(api.leer(f"/sessions/by-student/{sid}"))
         sint_alumno = sint_alumno[sint_alumno["origen"] == "sintetico"]
         nums = list(sint_alumno.sesion_num)
-        n = st.select_slider("Sesión", options=nums)
-        turnos = sint_alumno[sint_alumno["sesion_num"] == n].iloc[0]["turnos"]
-        if turnos:
-            st.dataframe(pd.DataFrame(turnos), use_container_width=True, hide_index=True)
+        if not nums:
+            st.info("Este alumno no tiene sesiones sintéticas (solo reales): mira la pestaña «Sesiones reales».")
         else:
-            st.info("Este corpus (generador corregido de Marcos) solo contiene métricas por sesión, "
-                    "sin turnos de conversación. Usa `make seed GENERADOR=heredado` para ver turnos de ejemplo.")
+            n = st.select_slider("Sesión", options=nums)
+            fila = sint_alumno[sint_alumno["sesion_num"] == n].iloc[0]
+            cols = ["sesion_num", "competencia", "aMLU", "latencia_pragmatica_ms", "IRC_pct", "PEPE", "pct_DET", "etiqueta_real_disenada"]
+            st.dataframe(fila[[c for c in cols if c in fila.index]].to_frame("valor"), use_container_width=True)
+            st.info("Las sesiones sintéticas solo tienen métricas por sesión: no hay turnos de conversación "
+                    "(`generar_turnos.py` está pendiente). Los turnos de las sesiones reales están en la pestaña «Sesiones reales».")
 
 # ----------------------------------------------------------- Sesiones reales
 with tab_real:
-    real = df(api.leer("/sessions", origen="real", sin_turnos=True))
+    real = df(api.leer("/sessions", origen="real"))
     st.caption("Métricas calculadas desde conversaciones reales terminadas (no de prueba). Definiciones "
                "provisionales: docs/metricas-reales.md. NO hay etiqueta real: aquí se comprueba que las "
                "métricas caen en el rango con el que se entrenó el clasificador, no su acierto.")
@@ -271,7 +273,7 @@ with tab_real:
             st.dataframe(df(api.leer(f"/conversaciones/{elegida}/figuras")).drop(
                 columns=["turn_id", "session_id", "conversacion_id", "texto_respuesta", "es_prueba"], errors="ignore"),
                 use_container_width=True, hide_index=True)
-        sint = df(api.leer("/sessions", origen="sintetico", sin_turnos=True))
+        sint = df(api.leer("/sessions", origen="sintetico"))
         filas = []
         for col, nombre in METRICAS.items():
             if sint.empty:
@@ -299,7 +301,7 @@ with tab_consola:
         st.success(st.session_state.pop("aviso_consola"))
     autor = st.text_input("Terapeuta (quién corrige)", key="consola_autor", max_chars=80,
                           help="Se guarda en el historial de correcciones. Es un nombre declarado, no verificado.").strip()
-    reales = df(api.leer("/sessions", origen="real", sin_turnos=True))
+    reales = df(api.leer("/sessions", origen="real"))
     if reales.empty:
         st.info("Aún no hay sesiones reales que corregir.")
     else:

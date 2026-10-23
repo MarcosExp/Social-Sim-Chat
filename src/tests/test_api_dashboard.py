@@ -90,13 +90,14 @@ def test_detalle_de_conversacion_trae_campos_de_correccion(cliente, alumno, fake
     assert {"iniciativa", "accuracy_corregido", "ayudas_solicitadas"} <= set(t) and t["accuracy_corregido"] is None
 
 
-def test_listado_de_sesiones_sin_turnos(cliente, alumno, bd):
-    sid = _sesion_sintetica(bd, alumno, 1)
-    with bd.begin() as c:
-        c.execute(text("UPDATE session_data SET turnos = CAST(:t AS JSONB) WHERE session_id = :i"), {"t": '[{"rol": "menor"}]', "i": sid})
-    con = cliente.get("/sessions", params={"student_id": alumno}).json()[0]
-    sin = cliente.get("/sessions", params={"student_id": alumno, "sin_turnos": True}).json()[0]
-    assert con["turnos"] == [{"rol": "menor"}] and sin["turnos"] is None and sin["session_id"] == con["session_id"]
+def test_session_data_ya_no_tiene_columna_turnos(cliente, alumno, bd):
+    """Migración 012: los turnos viven solo en conversacion_turno (vista turn_data); ni la tabla ni el listado los exponen."""
+    _sesion_sintetica(bd, alumno, 1)
+    with bd.connect() as c:
+        hay = c.execute(text("SELECT count(*) FROM information_schema.columns WHERE table_name = 'session_data' AND column_name = 'turnos'")).scalar()
+    assert hay == 0
+    fila = cliente.get("/sessions", params={"student_id": alumno}).json()[0]
+    assert "turnos" not in fila
 
 
 # ---------------------------------------------------------------------------------------------- escritura
