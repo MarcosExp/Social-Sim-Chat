@@ -15,6 +15,6 @@ agrupan por alumno y competencia; informe por semilla en reports/»; `main` del 
 (nuestro) los resuelve para el backend y los scripts. Comprobado: features idénticas a las de la versión anterior
 (diferencia máxima 0,0) y mismo entrenamiento (F1-macro 0,793; recall de estancamiento 0,670; precisión 0,741).
 
-Cualquier cambio se hace fuera de estos ficheros (adaptadores en `src/scripts/`)
+Cualquier cambio se hace fuera de estos ficheros (adaptadores como `src/app/ml_config.py`)
 para poder reabsorber futuras versiones de Marcos sin conflictos.
 Ver `AUTORIA.md` en la raíz del repositorio.
