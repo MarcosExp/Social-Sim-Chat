@@ -11,14 +11,14 @@ Módulo C088 · Curso de Especialización en IA y Big Data (iFP) · Grupo 12: Á
 
 | Pieza | Dónde | Estado |
 |---|---|---|
-| Base de datos PostgreSQL 16, migraciones 001→012 | `data/init-db/` | Implementada. ER v2: una sola tabla `session_data` con `origen` (`sintetico`/`real`) |
+| Base de datos PostgreSQL 16, migraciones 001→013 | `data/init-db/` | Implementada. ER v2: una sola tabla `session_data` con `origen` (`sintetico`/`real`) |
 | Backend FastAPI (alumnos, sesiones, conversación, correcciones, modelo, predicciones, resumen) | `src/app/` | Implementado. Contrato: [`docs/api-dashboard.md`](docs/api-dashboard.md), [`docs/api-conversacion.md`](docs/api-conversacion.md) |
 | Chat del menor (HTML estático servido por el backend) | `src/app/static/chat/` → `http://localhost:8010/chat/` | Implementado; **necesita un LLM** (Ollama) para responder |
 | Dashboard del terapeuta (Streamlit, solo habla con la API) | `src/dashboard/` → `http://localhost:8501` | Implementado |
 | Generador de corpus sintético y evaluación antifuga | `src/generador/`, `src/ml/` | De Marcos, sin modificar |
 | Clasificador (RandomForest, CV por alumno, anti-fuga) | `src/scripts/train_classifier.py` | Implementado; entrena offline y escribe la predicción en `session_data` |
 | Vista `turn_data` (una fila por figura, regla 2/1/0) | migración 009 | Implementada (solo conversaciones reales) |
-| Tests (176) | `src/tests/` | Pasan; usan un Ollama simulado (`tests/fake_ollama.py`) |
+| Tests (181) | `src/tests/` | Pasan; usan un Ollama simulado (`tests/fake_ollama.py`) |
 
 ## Diseñado pero NO implementado (límites conocidos)
 
@@ -40,7 +40,7 @@ make up       # crea environment/.env si falta, construye y levanta Postgres + b
 make seed     # genera el corpus sintético (100 alumnos, 1500 sesiones) y lo carga en Postgres
 make train    # entrena el clasificador y escribe las predicciones (~30 s)
 make verify   # conteos en BD (100 / 1500 / 1200) y métricas del modelo; con la semilla por defecto cumple los tres umbrales
-make test     # 176 tests de contrato con un Ollama simulado (no necesita GPU ni modelo)
+make test     # 181 tests de contrato con un Ollama simulado (no necesita GPU ni modelo)
 ```
 
 - Dashboard: <http://localhost:8501> (pipeline, alumno, modelo, sesiones reales). API y `/docs`: <http://localhost:8010>.
@@ -62,7 +62,7 @@ en el stack (solo en los tests): está pendiente de decidir quién lo hace.
 
 ```
 environment/   docker-compose.yml, Dockerfiles y .env.example
-data/init-db/  migraciones SQL 001→012 (001 es histórica; la estructura vigente es la suma)
+data/init-db/  migraciones SQL 001→013 (001 es histórica; la estructura vigente es la suma)
 src/app/       backend FastAPI (routers/, guiones/guiones.json, static/chat/)
 src/dashboard/ dashboard Streamlit (solo vía API, ADR-003)
 src/generador/ src/ml/   corpus sintético y features antifuga (Marcos; ver src/generador/ORIGEN.md)

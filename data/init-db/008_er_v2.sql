@@ -76,9 +76,16 @@ UPDATE session_data
 
 ALTER TABLE session_data DROP CONSTRAINT IF EXISTS session_data_origen_check;
 ALTER TABLE session_data ADD CONSTRAINT session_data_origen_check CHECK (origen IN ('sintetico', 'real'));
-ALTER TABLE session_data DROP CONSTRAINT IF EXISTS session_data_origen_conversacion_check;
-ALTER TABLE session_data ADD CONSTRAINT session_data_origen_conversacion_check
-    CHECK ((origen = 'real') = (conversacion_id IS NOT NULL));
+-- Solo se crea si falta: la 013 la relaja (real exige conversación; sintético puede tenerla) y al reaplicar la 008 no debe
+-- volver a endurecerla, porque fallaría con sesiones sintéticas que ya tienen conversación.
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'session_data_origen_conversacion_check'
+                   AND conrelid = 'session_data'::regclass) THEN
+        ALTER TABLE session_data ADD CONSTRAINT session_data_origen_conversacion_check
+            CHECK ((origen = 'real') = (conversacion_id IS NOT NULL));
+    END IF;
+END $$;
 ALTER TABLE session_data DROP CONSTRAINT IF EXISTS session_data_etiqueta_diseno_check;
 ALTER TABLE session_data ADD CONSTRAINT session_data_etiqueta_diseno_check
     CHECK (origen = 'real' OR etiqueta_real_disenada IS NOT NULL);

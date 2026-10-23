@@ -1,7 +1,7 @@
 erDiagram
     student_profile_sim ||--o{ session_data : "tiene sesiones"
     student_profile_sim ||--o{ conversacion : "mantiene"
-    conversacion ||--o| session_data : "origina (solo origen=real)"
+    conversacion ||--o| session_data : "origina (obligatorio si origen=real; opcional en sinteticas, 013)"
     conversacion ||--o{ conversacion_turno : "contiene turnos"
     conversacion_turno }o--|| turn_data : "agrupada por figura (vista, ADR-002)"
     student_profile_sim ||--o{ classifier_predictions : "predice"
@@ -27,7 +27,7 @@ erDiagram
         text student_id FK
         int sesion_num UK "UNIQUE con student_id; las reales continuan la numeracion del alumno"
         text origen "sintetico / real"
-        uuid conversacion_id FK "obligatorio si origen=real, UNIQUE parcial"
+        uuid conversacion_id FK "obligatorio si origen=real, opcional si sintetico (013), UNIQUE parcial"
         date fecha
         text competencia "para el dashboard, no es feature"
         text personaje
@@ -93,7 +93,7 @@ erDiagram
         bigint id PK
         uuid conversacion_id FK
         int orden UK "UNIQUE con conversacion_id"
-        text rol "asistente / menor"
+        text rol "bot / menor"
         text nodo "figura o paso del guion"
         text tipo "apertura / competencia"
         int intento "1 o 2; una fila por intento (ADR-002)"

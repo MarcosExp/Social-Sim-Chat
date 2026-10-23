@@ -80,6 +80,8 @@ if ($EsperadoTurnData) { Resultado ($v.Trim() -eq $EsperadoTurnData) "turn_data 
 else { Resultado ($v.Trim() -match '^\d+\|\d+$') "vista turn_data accesible (filas|conversaciones = $v; 0|0 es normal en una instalacion nueva)" "Aplica 009, 010 y 011" }
 $t = Sql "SELECT count(*) FROM information_schema.columns WHERE table_name='session_data' AND column_name='turnos';"
 Resultado ($t.Trim() -eq "0") "session_data sin columna turnos (migracion 012)" "Aplica 012_quitar_turnos_jsonb.sql"
+$k = Sql "SELECT count(*) FROM pg_trigger WHERE tgname='session_data_sintetico_es_prueba';"
+Resultado ($k.Trim() -eq "1") "sesiones sinteticas con conversacion permitidas y guardadas (migracion 013)" "Aplica 013_turnos_sinteticos.sql"
 $c = Sql "SELECT count(*) FROM information_schema.columns WHERE table_name='turn_data' AND column_name IN ('hubo_respuesta','es_prueba');"
 Resultado ($c.Trim() -eq "2") "vista turn_data con hubo_respuesta y es_prueba" "Vuelve a aplicar 009_vista_turn_data.sql"
 $p = Sql "SELECT count(*) || '|' || count(etiqueta_prediccion) FROM session_data WHERE origen='sintetico';"

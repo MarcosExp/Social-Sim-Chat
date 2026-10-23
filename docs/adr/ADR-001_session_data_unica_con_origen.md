@@ -46,3 +46,18 @@ Se mantiene **una sola tabla** `session_data`, con `origen IN ('sintetico','real
 
 ## Addendum (23/10/2026) — se elimina `session_data.turnos`
 Migración **012** (`012_quitar_turnos_jsonb.sql`): se quita la columna `turnos`, a petición de Marcos al revisar el ER v2. Los turnos viven solo en `conversacion_turno` (y en la vista `turn_data`, ADR-002). La migración **aborta** si alguna fila tiene datos en `turnos` (p. ej. un corpus cargado con el generador heredado), en lugar de borrarlos. El ER vigente es [`er_v2.mmd`](../er_v2.mmd) (sin `turnos`, contrastado columna a columna con el esquema real; solo omite las columnas de auditoría `created_at`/`updated_at`). Los recuentos de pruebas de este documento son los de su fecha; hoy la suite tiene 159 pruebas.
+
+## Addendum (23/10/2026) — turnos sintéticos: opción A (migración 013)
+**Decide:** Álvaro (dueño del esquema) · **Revisa:** Marcos, que solo decide el contrato del generador de turnos.
+
+La regla «`origen='real'` ⇔ `conversacion_id` no nulo» impedía que una sesión sintética tuviera turnos: `turn_data` (ADR-002) es una vista sobre `conversacion_turno` y solo veía conversaciones reales (0 filas con el corpus sembrado). Se relaja a **«real exige `conversacion_id`; sintético puede tenerlo»** (`CHECK (origen <> 'real' OR conversacion_id IS NOT NULL)`), y el generador de turnos (`generar_turnos.py`, a cargo de Marcos) crea filas `conversacion` + `conversacion_turno` y enlaza la sesión sintética.
+
+| Riesgo | Cómo se controla |
+|---|---|
+| Una conversación sintética se contaría como real | Debe llevar `conversacion.es_prueba = true` (las métricas reales, `metricas_reales` y los listados ya la excluyen). Un CHECK no mira otra tabla, así que lo impone el disparador `session_data_sintetico_es_prueba`: rechaza una sesión sintética enlazada a una conversación que no sea de prueba |
+| Fuga al entrenamiento | Sin cambios: `train_classifier` filtra `origen='sintetico'`, que ahora puede tener conversación; las reales siguen fuera (test) |
+| Reaplicar migraciones | La 008 solo crea la restricción si falta (no la vuelve a endurecer); test que reaplica todo con una sesión sintética enlazada |
+
+Alternativa descartada (B): tabla aparte de turnos sintéticos; duplicaría la vista y el código. Es reversible con una migración pequeña si Marcos objeta antes del 25/10.
+
+**Contrato propuesto para `generar_turnos.py`** (a confirmar por Marcos): por cada sesión sintética que quiera con turnos, (1) `INSERT conversacion` con `estado='terminada'`, `es_prueba=true`, `student_id`, `competencia`, `guion_version`, `personaje`, `alias`, `nodo_actual`; (2) `INSERT conversacion_turno` (`orden` correlativo, `rol` `bot`/`menor`, `tipo` `apertura`/`competencia`/`cierre`, `nodo`, `intento` 1 o 2, `texto`, `evaluacion` 0/1/2 solo en el menor en competencia, `latencia_ms`, `iniciativa`, `ayudas_solicitadas`); (3) `UPDATE session_data SET conversacion_id` de esa sesión. Abierto: las métricas ya guardadas en `session_data` (amlu, pepe, irc…) deben salir de esos turnos con las mismas reglas (`app/metricas.py::calcular`) o los turnos deben generarse para cuadrar con ellas; si no cuadran, la memoria lo declara.

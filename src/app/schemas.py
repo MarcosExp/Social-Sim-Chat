@@ -43,7 +43,7 @@ class SessionDataOut(BaseModel):
     etiqueta_corregida: str | None = None
     etiqueta_prediccion: str | None = None       # última predicción del clasificador (historial: /predicciones)
     confianza_prediccion: float | None = None
-    conversacion_id: uuid.UUID | None = None     # solo origen real
+    conversacion_id: uuid.UUID | None = None     # obligatorio si origen real; opcional en sintéticas (migración 013)
     n_turnos_menor: int | None = None
     n_turnos_evaluados: int | None = None
     n_figuras: int | None = None
