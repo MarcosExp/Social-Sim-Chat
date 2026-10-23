@@ -1,0 +1,146 @@
+#!/usr/bin/env python3
+"""Genera el corpus sintético (reutilizando generador_corpus_sintetico.py
+tal cual, heredado del TFM) y lo carga en Postgres.
+
+Uso (dentro del contenedor backend o con DATABASE_URL apuntando a localhost):
+
+    python -m scripts.seed_corpus --reset                 # corpus corregido de Marcos (por defecto)
+    python -m scripts.seed_corpus --generador heredado    # generador anterior (filtra la etiqueta)
+
+También puedes ejecutarlo contra el contenedor en marcha:
+
+    docker compose -f environment/docker-compose.yml exec backend \
+        python -m scripts.seed_corpus
+"""
+from __future__ import annotations
+
+import argparse
+import json
+import uuid
+from pathlib import Path
+
+from sqlalchemy import text
+
+from app.config import settings
+from app.db import SessionLocal
+
+SRC = Path(__file__).resolve().parent.parent
+ETIQUETA = {"progreso": "progreso", "estancamiento": "estancamiento", "regresion": "regresion"}   # ER v2: minúsculas, sin tilde
+
+
+def etiqueta_db(e: str) -> str:
+    """Normaliza etiquetas de cualquier generador («Progreso», «Regresión», «Progreso (alta variabilidad)») al valor de la BD."""
+    return e.split(" (")[0].strip().lower().replace("ó", "o")
+NS = uuid.UUID("5d85eb0c-0000-4000-8000-50c1a15101c0")  # UUIDs deterministas: misma semilla -> mismos ids
+
+
+def corpus_marcos(seed: int | None):
+    """Adapta el corpus corregido de Marcos (src/generador/, sin modificar) al esquema de la BD."""
+    from generador.generador_corpus_sintetico import cargar_config, generar_corpus
+
+    cfg = cargar_config(SRC / "generador" / "config.yaml")
+    train, meta = generar_corpus(cfg, seed)
+    n_ses = train.groupby("alumno_id").size()
+    perfiles = meta.assign(
+        student_id=meta["alumno_id"],
+        competencia_objetivo=meta["competencia"],
+        trayectoria_disenada=meta["trayectoria"].map(ETIQUETA),
+        tramo_edad=None,
+        n_sesiones=meta["alumno_id"].map(n_ses),
+        ambiguo=meta["ambiguo"].astype(bool),
+        tipo_ambiguo=meta["tipo_ambiguo"].replace("", None),
+        sesion_inicio_evento=meta["inicio_cambio"],      # nombre del ER (migración 008)
+    )[["student_id", "competencia_objetivo", "trayectoria_disenada", "tramo_edad", "n_sesiones",
+       "sesion_inicio_evento", "arquetipo", "ambiguo", "tipo_ambiguo"]]
+    comp = meta.set_index("alumno_id")["competencia"]
+    sesiones = train.assign(
+        session_id=[str(uuid.uuid5(NS, f"{a}-{n}")) for a, n in zip(train["alumno_id"], train["sesion"])],
+        student_id=train["alumno_id"],
+        sesion_num=train["sesion"],
+        competencia=train["alumno_id"].map(comp),
+        latencia_pragmatica_ms=train["latencia_pragmatica_ms"],
+        pct_DET_observado_en_turnos=None,   # este generador no produce turnos
+        etiqueta_real_disenada=train["etiqueta"].map(ETIQUETA),
+        turnos=None,
+    )[["session_id", "student_id", "sesion_num", "competencia", "aMLU", "latencia_pragmatica_ms", "IRC_pct",
+       "PEPE", "pct_DET", "pct_DET_observado_en_turnos", "etiqueta_real_disenada", "turnos"]]
+    return perfiles, sesiones
+
+
+def corpus_heredado(n_por_arquetipo: int, seed: int):
+    from scripts.generador_corpus_sintetico import generar_corpus
+
+    return generar_corpus(n_por_arquetipo, seed)
+
+
+def seed(generador: str, n_por_arquetipo: int, seed: int | None, reset: bool) -> None:
+    if generador == "marcos":
+        df_perfiles, df_sesiones = corpus_marcos(seed)
+    else:
+        df_perfiles, df_sesiones = corpus_heredado(n_por_arquetipo, 42 if seed is None else seed)
+    df_perfiles = df_perfiles.astype(object).where(df_perfiles.notna(), None)
+    df_sesiones = df_sesiones.astype(object).where(df_sesiones.notna(), None)
+    for col in ("sesion_inicio_evento", "n_sesiones"):
+        if col in df_perfiles:
+            df_perfiles[col] = [None if v is None else int(v) for v in df_perfiles[col]]
+
+    db = SessionLocal()
+    try:
+        if reset:  # todo el contenido es sintético: se puede vaciar sin riesgo
+            db.execute(text("TRUNCATE student_profile_sim CASCADE"))
+        for _, row in df_perfiles.iterrows():
+            db.execute(
+                text(
+                    """
+                    INSERT INTO student_profile_sim
+                        (student_id, competencia_objetivo, trayectoria_disenada, tramo_edad, n_sesiones,
+                         sesion_inicio_evento, arquetipo, nivel_ruido, ambiguo, tipo_ambiguo)
+                    VALUES (:student_id, :competencia_objetivo, :trayectoria_disenada, :tramo_edad, :n_sesiones,
+                            :sesion_inicio_evento, :arquetipo, :nivel_ruido, :ambiguo, :tipo_ambiguo)
+                    ON CONFLICT (student_id) DO NOTHING
+                    """
+                ),
+                {"sesion_inicio_evento": None, "arquetipo": None, "nivel_ruido": None, "ambiguo": None, "tipo_ambiguo": None,
+                 **row.to_dict(), "trayectoria_disenada": etiqueta_db(row["trayectoria_disenada"])},
+            )
+
+        for _, row in df_sesiones.iterrows():
+            data = row.to_dict()  # `turnos` ya es un string JSON serializado por el generador
+            data["etiqueta_real_disenada"] = etiqueta_db(data["etiqueta_real_disenada"])
+            db.execute(
+                text(
+                    """
+                    INSERT INTO session_data
+                        (session_id, student_id, sesion_num, competencia, origen, amlu,
+                         latencia_pragmatica_ms, irc_pct, pepe, pct_det,
+                         pct_det_observado_en_turnos, etiqueta_real_disenada, turnos)
+                    VALUES
+                        (:session_id, :student_id, :sesion_num, :competencia, 'sintetico', :aMLU,
+                         :latencia_pragmatica_ms, :IRC_pct, :PEPE, :pct_DET,
+                         :pct_DET_observado_en_turnos, :etiqueta_real_disenada, CAST(:turnos AS JSONB))
+                    ON CONFLICT (student_id, sesion_num) DO NOTHING
+                    """
+                ),
+                data,
+            )
+
+        db.commit()
+    finally:
+        db.close()
+
+    print(f"Cargados {len(df_perfiles)} alumnos simulados y {len(df_sesiones)} sesiones en la base de datos.")
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--generador", choices=["marcos", "heredado"], default="marcos")
+    parser.add_argument("--seed", type=int, default=None, help="por defecto, la de config.yaml (marcos) o 42 (heredado)")
+    parser.add_argument("--n-por-arquetipo", type=int, default=25, help="solo generador heredado")
+    parser.add_argument("--reset", action="store_true", help="vacía las tablas antes de cargar")
+    args = parser.parse_args()
+    print(f"Generador: {args.generador}")
+    seed(args.generador, args.n_por_arquetipo, args.seed, args.reset)
+
+
+if __name__ == "__main__":
+    main()

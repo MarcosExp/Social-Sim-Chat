@@ -1,0 +1,105 @@
+name: social-sim-chat
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-social_sim}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change_me_local_dev}
+      POSTGRES_DB: ${POSTGRES_DB:-social_sim_chat}
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ../data/init-db:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-social_sim} -d ${POSTGRES_DB:-social_sim_chat}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Ollama propio del compose: OPCIONAL (perfil `ollama-local`). Por defecto el backend usa el Ollama
+  # del host (OLLAMA_URL=http://host.docker.internal:11434). Para usar este: pon
+  # OLLAMA_URL=http://ollama:11434 en .env y arranca con `--profile ollama-local`.
+  ollama:
+    image: ollama/ollama:latest
+    profiles: ["ollama-local"]
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:11434:11434"
+    volumes:
+      - ollama_models:/root/.ollama
+    # Sin GPU por defecto (portátil / CI). Si tienes GPU NVIDIA en el host,
+    # descomenta el bloque `deploy` de abajo.
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]
+
+  backend:
+    build:
+      context: ../src
+      dockerfile: ../environment/Dockerfile.backend
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg2://social_sim:change_me_local_dev@db:5432/social_sim_chat}
+      ENV: ${ENV:-development}
+      # Motor conversacional: "ollama" (por defecto, portable) o "tabbyapi"
+      # (tu stack externo). Ver environment/.env.example.
+      LLM_PROVIDER: ${LLM_PROVIDER:-ollama}
+      # La variable de ENTRADA se llama OLLAMA_URL (no OLLAMA_HOST): Ollama usa OLLAMA_HOST=0.0.0.0 como variable de entorno de Windows y
+      # docker compose da prioridad al entorno del shell sobre .env, lo que dejaba al backend con una URL sin http://.
+      OLLAMA_HOST: ${OLLAMA_URL:-http://host.docker.internal:11434}
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-qwen3:14b}
+      OLLAMA_THINK: ${OLLAMA_THINK:-false}
+      OLLAMA_NUM_CTX: ${OLLAMA_NUM_CTX:-8192}
+      OLLAMA_KEEP_ALIVE: ${LLM_KEEP_ALIVE:-30m}   # entrada LLM_KEEP_ALIVE: OLLAMA_KEEP_ALIVE=5m suele estar definida en Windows para el propio Ollama y ganaba a .env
+      OLLAMA_TEMPERATURE: ${OLLAMA_TEMPERATURE:-0.3}
+      OLLAMA_NUM_PREDICT: ${OLLAMA_NUM_PREDICT:-200}
+      OLLAMA_TIMEOUT_S: ${OLLAMA_TIMEOUT_S:-120}
+      OLLAMA_MAX_REINTENTOS: ${OLLAMA_MAX_REINTENTOS:-2}
+      OLLAMA_REINTENTO_ESPERA_S: ${OLLAMA_REINTENTO_ESPERA_S:-0.5}
+      OLLAMA_COLA_TIMEOUT_S: ${OLLAMA_COLA_TIMEOUT_S:-120}
+      TABBYAPI_HOST: ${TABBYAPI_HOST:-http://host.docker.internal:5000}
+      TABBYAPI_MODEL: ${TABBYAPI_MODEL:-Qwen3.8-27B-EXL3-3.0bpw}
+      TABBYAPI_API_KEY: ${TABBYAPI_API_KEY:-}
+      # Clave de las pantallas del terapeuta (dashboard y API de lectura/corrección). En compose es obligatoria
+      # por defecto; la clave de desarrollo NO sirve para un despliegue real: cámbiala en environment/.env.
+      API_KEY_TERAPEUTA: ${API_KEY_TERAPEUTA:-dev-terapeuta-local}
+    ports:
+      - "127.0.0.1:${BACKEND_PORT:-8010}:8000"
+    volumes:
+      - ../src:/app  # live-reload en desarrollo
+    extra_hosts:
+      # Necesario en Linux para que host.docker.internal resuelva al host
+      # (en Docker Desktop para Windows/Mac ya funciona sin esto).
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      db:
+        condition: service_healthy
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  dashboard:
+    build:
+      context: ../src
+      dockerfile: ../environment/Dockerfile.dashboard
+    restart: unless-stopped
+    environment:
+      # El dashboard solo habla con la API (ADR-003): sin cadena de conexión ni acceso a Postgres.
+      BACKEND_URL: http://backend:8000
+      API_KEY_TERAPEUTA: ${API_KEY_TERAPEUTA:-dev-terapeuta-local}
+    ports:
+      - "127.0.0.1:${DASHBOARD_PORT:-8501}:8501"
+    volumes:
+      - ../src/dashboard:/app        # live-reload en desarrollo
+    depends_on:
+      backend:
+        condition: service_started
+
+volumes:
+  pgdata:
+  ollama_models:
