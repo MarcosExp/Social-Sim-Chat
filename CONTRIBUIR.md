@@ -29,11 +29,11 @@
 git clone https://github.com/MarcosExp/Social-Sim-Chat && cd Social-Sim-Chat
 git remote add nf3 https://github.com/cCoolBoox/social-sim-chat-nf3.git && git fetch nf3
 git checkout -b entrega-nf3 origin/main
-git merge nf3/main --allow-unrelated-histories      # conflictos esperados: .gitignore, README.md, src/ml/features.py, src/ml/evaluar_corpus.py
+git merge nf3/main --allow-unrelated-histories      # conflictos esperados: .gitignore y README.md
 git push -u origin entrega-nf3                       # y PR entrega-nf3 -> main en GitHub
 ```
 
-- Resolver los conflictos a mano. **No usar `-X theirs`**: `src/ml/` del repo académico es más reciente que la copia de nf3 (ver `src/generador/ORIGEN.md`) y se pisaría.
+- Resolver los conflictos a mano (en `README.md` prevalece el de nf3). **No usar `-X theirs`**: si Marcos cambia algo en su repo después, se pisaría sin avisar. `src/ml/` no da conflicto porque nf3 tiene la misma versión que su `main` (`4e2be4e`).
 - Se conserva el historial de los dos repos (el de Marcos y el de nf3).
 - Del repo académico siguen existiendo `config.yaml`, `requirements.txt` (fija otras versiones que `src/requirements.txt`; su numpy 2.5.3 no se instala en la imagen `python:3.11-slim`, así que hay que alinearlo o retirarlo), los diagramas de NF2 (`docs/er.*`, `docs/arquitectura.*`) y los documentos de NF2; hay que decidir qué se queda y qué se mueve a una carpeta de historial para que el ER vigente (`docs/er_v2.*`) sea el único a la vista.
 - Escribir en el repo académico requiere permiso de Marcos.
