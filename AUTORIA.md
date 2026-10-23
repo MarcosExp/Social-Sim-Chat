@@ -5,7 +5,7 @@ con la autoría y para decidir con conocimiento cualquier publicación posterior
 
 ## Código de Marcos Expósito Flox (copiado sin modificar)
 
-Origen: `MarcosExp/Social-Sim-Chat`, PR #2, commit `5d85eb0` (12/10/2026). Detalle en `src/generador/ORIGEN.md`.
+Origen: `MarcosExp/Social-Sim-Chat`, PR #2, commit `5d85eb0` (12/10/2026); el PR llegó después a `4e2be4e`, que cambia `features.py` y `evaluar_corpus.py` (desfase pendiente de acordar con Marcos). Detalle en `src/generador/ORIGEN.md`.
 
 - `src/generador/generador_corpus_sintetico.py`, `src/generador/config.yaml`
 - `src/ml/features.py`, `src/ml/evaluar_corpus.py`
