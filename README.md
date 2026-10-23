@@ -18,7 +18,7 @@ Módulo C088 · Curso de Especialización en IA y Big Data (iFP) · Grupo 12: Á
 | Generador de corpus sintético y evaluación antifuga | `src/generador/`, `src/ml/` | De Marcos, sin modificar |
 | Clasificador (RandomForest, CV por alumno, anti-fuga) | `src/scripts/train_classifier.py` | Implementado; entrena offline y escribe la predicción en `session_data` |
 | Vista `turn_data` (una fila por figura, regla 2/1/0) | migración 009 | Implementada (solo conversaciones reales) |
-| Tests (174) | `src/tests/` | Pasan; usan un Ollama simulado (`tests/fake_ollama.py`) |
+| Tests (176) | `src/tests/` | Pasan; usan un Ollama simulado (`tests/fake_ollama.py`) |
 
 ## Diseñado pero NO implementado (límites conocidos)
 
@@ -40,7 +40,7 @@ make up       # crea environment/.env si falta, construye y levanta Postgres + b
 make seed     # genera el corpus sintético (100 alumnos, 1500 sesiones) y lo carga en Postgres
 make train    # entrena el clasificador y escribe las predicciones (~30 s)
 make verify   # conteos en BD (100 / 1500 / 1200) y métricas del modelo; con la semilla por defecto cumple los tres umbrales
-make test     # 174 tests de contrato con un Ollama simulado (no necesita GPU ni modelo)
+make test     # 176 tests de contrato con un Ollama simulado (no necesita GPU ni modelo)
 ```
 
 - Dashboard: <http://localhost:8501> (pipeline, alumno, modelo, sesiones reales). API y `/docs`: <http://localhost:8010>.
@@ -51,7 +51,7 @@ make test     # 174 tests de contrato con un Ollama simulado (no necesita GPU ni
 
 ### Probar el chat con un LLM real (opcional)
 
-El backend usa el Ollama del host (`OLLAMA_URL=http://host.docker.internal:11434`, modelo `qwen3:14b`, ~5 GB; con GPU de 16 GB va fluido).
+El backend usa el Ollama del host (`OLLAMA_URL=http://host.docker.internal:11434`, modelo `qwen3:14b`, ~9 GB de descarga; con GPU de 16 GB va fluido).
 `make pull-model` lo descarga. Se puede probar con otro modelo más pequeño cambiando `OLLAMA_MODEL` en `environment/.env`
 (**no probado**: el prompt del evaluador 0/1/2 se afinó con `qwen3:14b`). Tampoco hay todavía un modo «LLM simulado» ejecutable
 en el stack (solo en los tests): está pendiente de decidir quién lo hace.

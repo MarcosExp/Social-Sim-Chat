@@ -32,7 +32,9 @@ def prediccion_sobre_sesiones_reales(student_id: str, db: Session = Depends(get_
     ventanas de `ventana_requerida` sesiones consecutivas y sus cinco métricas; sobre sesiones reales faltan datos y hay
     métricas provisionales. Los motivos salen de las mismas constantes que usa el cálculo (`metricas.PROVISIONALES*`): cuando
     se resuelvan, `disponible` pasa a verdadero sin tocar este endpoint."""
-    from ml.features import VENTANA           # import diferido: arrastra pandas/numpy
+    from app.ml_config import ventana         # import diferido: arrastra pandas/numpy
+
+    VENTANA = ventana()
 
     if db.get(StudentProfileSim, student_id) is None:
         raise HTTPException(status_code=404, detail="student_id no encontrado")

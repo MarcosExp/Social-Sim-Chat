@@ -37,8 +37,12 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics import confusion_matrix
 
-from ml.evaluar_corpus import CLASES, cv_predict, heuristica, metricas, retraso_deteccion, rf
-from ml.features import COLUMNAS_FEATURES, VENTANA, construir_features
+from app import ml_config
+from app.ml_config import construir_features, heuristica
+from ml.evaluar_corpus import CLASES, cv_predict, metricas, retraso_deteccion, rf
+
+COLUMNAS_FEATURES = ml_config.columnas_features()
+VENTANA = ml_config.ventana()
 
 # Umbrales de éxito (recall de estancamiento revisado a >=0.65 tras medir el efecto de las transiciones).
 UMBRALES = {"f1_macro": 0.75, "recall_estancamiento": 0.65, "precision_estancamiento": 0.65}

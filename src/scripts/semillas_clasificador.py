@@ -19,8 +19,11 @@ from pathlib import Path
 
 import numpy as np
 
+from app import ml_config
+from app.ml_config import construir_features
 from ml.evaluar_corpus import cv_predict, metricas
-from ml.features import COLUMNAS_FEATURES, construir_features
+
+COLUMNAS_FEATURES = ml_config.columnas_features()
 
 UMBRAL_RECALL = 0.65
 CLAVES = ["recall_estancamiento", "f1_macro", "precision_estancamiento", "accuracy"]

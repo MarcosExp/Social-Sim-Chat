@@ -49,3 +49,10 @@ metricas:
   pct_DET:                {pendiente: 4.5,   rango: 100,  inicio: 22,   min: 0,   max: 100}
 
 baseline_sigma_relativo: 0.03   # dispersión del nivel inicial entre alumnos (fracción del rango)
+
+# Features del clasificador (src/ml/features.py). Las lee también el backend en
+# inferencia, para que entrenamiento y predicción no se desincronicen.
+# Los rangos de normalización son metricas.<m>.rango.
+features:
+  ventana: 4              # sesiones por ventana (la actual y las anteriores)
+  n_base: 3               # sesiones de evaluación inicial (línea base)
