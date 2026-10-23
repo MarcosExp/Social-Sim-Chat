@@ -57,6 +57,17 @@ Servida por el propio backend en `/chat/` (HTML + JS + CSS estáticos en `src/ap
 - Errores `reintentable: true` (503, sin conexión): conserva el mensaje pendiente y ofrece «Intentar otra vez», que reenvía el mismo texto con la misma latencia. Errores no reintentables: el texto vuelve a la caja. `409` cierra la conversación.
 - Prueba sin backend ni Ollama: `python -m scripts.mock_api_chat` (puerto 8099, `/chat/`) y `python -m tests.e2e_chat` (Playwright; no entra en el `pytest` por defecto). Disparadores del mock: «fallo503», «fallo409», «fallo422» en el mensaje.
 
+## Proveedores del motor (`LLM_PROVIDER`)
+| Valor | Qué es | Notas |
+|---|---|---|
+| `ollama` (por defecto) | API nativa de Ollama (`/api/chat`) | Validado con `qwen3:14b`. Permite `think:false`, `num_ctx` y `keep_alive`. |
+| `openai` | Cualquier servidor con API compatible con OpenAI (`/v1/chat/completions`) | Interfaz que fija NF2 para sustituir el motor. Variables `LLM_COMPAT_URL` (raíz, sin `/v1`), `LLM_COMPAT_MODEL`, `LLM_COMPAT_API_KEY` (opcional, `Authorization: Bearer`) y `LLM_COMPAT_RESPONSE_FORMAT`. |
+| `tabbyapi` | Alias histórico de `openai` con `TABBYAPI_*` | Sin `response_format`; cabecera `x-api-key`. |
+
+Con `openai` el cliente envía `model`, `messages`, `temperature`, `max_tokens` (`OLLAMA_NUM_PREDICT`) y `stream:false`, y para el evaluador `response_format` con el JSON schema (`strict`, `additionalProperties:false`). No envía `think`, `num_ctx` ni `keep_alive`: el contexto lo gestiona el servidor y los bloques `<think>…</think>` que devuelva el modelo se descartan. `/health` comprueba `/v1/models` y avisa si `LLM_COMPAT_MODEL` no está. Los errores, la cola de una petición a la vez y los reintentos son los mismos que con Ollama.
+
+Estado: probado con servidor simulado (`src/tests/test_proveedor_openai.py`: contrato del cliente y conversación completa); **falta la prueba con un servidor real** (`LLM_PROVIDER=openai make smoke` apuntando al `/v1` de Ollama). Con qwen3 no hay forma estándar de apagar el razonamiento por esta vía: el modelo puede razonar, tardar más y agotar `max_tokens`.
+
 ## Garantías del cliente Ollama (`src/app/llm_client.py`)
 - `num_ctx` explícito (`OLLAMA_NUM_CTX`, 8192), `think:false`, `stream:false`, `keep_alive` largo (`LLM_KEEP_ALIVE`, 30m).
 - Variables de entrada del compose: `OLLAMA_URL` y `LLM_KEEP_ALIVE` (dentro del contenedor siguen siendo `OLLAMA_HOST`/`OLLAMA_KEEP_ALIVE`).

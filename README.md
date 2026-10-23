@@ -18,7 +18,7 @@ Módulo C088 · Curso de Especialización en IA y Big Data (iFP) · Grupo 12: Á
 | Generador de corpus sintético y evaluación antifuga | `src/generador/`, `src/ml/` | De Marcos, sin modificar |
 | Clasificador (RandomForest, CV por alumno, anti-fuga) | `src/scripts/train_classifier.py` | Implementado; entrena offline y escribe la predicción en `session_data` |
 | Vista `turn_data` (una fila por figura, regla 2/1/0) | migración 009 | Implementada (solo conversaciones reales) |
-| Tests (159) | `src/tests/` | Pasan; usan un Ollama simulado (`tests/fake_ollama.py`) |
+| Tests (174) | `src/tests/` | Pasan; usan un Ollama simulado (`tests/fake_ollama.py`) |
 
 ## Diseñado pero NO implementado (límites conocidos)
 
@@ -40,7 +40,7 @@ make up       # crea environment/.env si falta, construye y levanta Postgres + b
 make seed     # genera el corpus sintético (100 alumnos, 1500 sesiones) y lo carga en Postgres
 make train    # entrena el clasificador y escribe las predicciones (~30 s)
 make verify   # conteos en BD (100 / 1500 / 1200) y métricas del modelo; con la semilla por defecto cumple los tres umbrales
-make test     # 159 tests de contrato con un Ollama simulado (no necesita GPU ni modelo)
+make test     # 174 tests de contrato con un Ollama simulado (no necesita GPU ni modelo)
 ```
 
 - Dashboard: <http://localhost:8501> (pipeline, alumno, modelo, sesiones reales). API y `/docs`: <http://localhost:8010>.
@@ -55,6 +55,8 @@ El backend usa el Ollama del host (`OLLAMA_URL=http://host.docker.internal:11434
 `make pull-model` lo descarga. Se puede probar con otro modelo más pequeño cambiando `OLLAMA_MODEL` en `environment/.env`
 (**no probado**: el prompt del evaluador 0/1/2 se afinó con `qwen3:14b`). Tampoco hay todavía un modo «LLM simulado» ejecutable
 en el stack (solo en los tests): está pendiente de decidir quién lo hace.
+
+**Motor sustituible (API compatible con OpenAI).** Por defecto el backend usa la API nativa de Ollama (`LLM_PROVIDER=ollama`, necesaria para `think:false`). Con `LLM_PROVIDER=openai` habla con cualquier servidor compatible con OpenAI (`/v1/chat/completions`: el `/v1` de Ollama, vLLM, LM Studio, TabbyAPI…) configurado con `LLM_COMPAT_URL`, `LLM_COMPAT_MODEL` y `LLM_COMPAT_API_KEY`, sin cambiar nada más del sistema. Está probado con un servidor simulado (conversación completa por la API, `/health`, errores y reintentos); **no está probado con un servidor real**. Con qwen3 esta vía no puede apagar el razonamiento, así que es más lenta: se recomienda `ollama` para qwen3.
 
 ## Estructura
 

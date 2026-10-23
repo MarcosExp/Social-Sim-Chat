@@ -20,10 +20,11 @@ class Settings(BaseSettings):
     metrics_path: Path = Path(__file__).resolve().parent.parent / "models" / "metrics.json"
 
     # --- Motor conversacional (LLM local) ---
-    # "ollama"   -> el servicio `ollama` de este docker-compose (portable, sin GPU dedicada)
-    # "tabbyapi" -> tu stack TabbyAPI/ExLlamaV3 externo.
-    # Ver environment/.env.example para cómo apuntarlo a tu PC y qué modelo
-    # usar (el denso Qwen3.8-27B, no el de código que carga por defecto).
+    # "ollama"   -> Ollama con su API nativa (por defecto; permite think:false y keep_alive).
+    # "openai"   -> cualquier servidor con API compatible con OpenAI (/v1/chat/completions): el /v1 de Ollama,
+    #               vLLM, LM Studio, TabbyAPI... Es la interfaz que fija NF2 para sustituir el motor local.
+    # "tabbyapi" -> alias histórico de "openai" con las variables TABBYAPI_* (stack TabbyAPI/ExLlamaV3 externo).
+    # Ver environment/.env.example para cómo apuntarlo a tu PC y qué modelo usar.
     llm_provider: str = "ollama"
 
     ollama_host: str = "http://host.docker.internal:11434"
@@ -46,13 +47,32 @@ class Settings(BaseSettings):
     tabbyapi_model: str = "Qwen3.8-27B-EXL3-3.0bpw"
     tabbyapi_api_key: str | None = None
 
+    # --- Proveedor "openai" (API compatible con OpenAI) ---
+    # Por defecto apunta al /v1 del Ollama del host, para poder probar la interfaz sin instalar nada más.
+    # Los nombres LLM_COMPAT_* evitan OPENAI_API_KEY / OPENAI_BASE_URL a propósito: si el entorno del usuario tiene una clave
+    # real de OpenAI, no debe acabar enviándose a este proveedor (los datos son de menores).
+    llm_compat_url: str = "http://host.docker.internal:11434"   # raíz del servidor, sin /v1
+    llm_compat_model: str = "qwen3:14b"
+    llm_compat_api_key: str | None = None
+    # Pide al servidor el JSON del evaluador con response_format=json_schema. Si tu servidor lo rechaza (HTTP 400), ponlo a false:
+    # el cliente extrae el JSON del texto igualmente.
+    llm_compat_response_format: bool = True
+
+    @property
+    def llm_openai_compatible(self) -> bool:
+        return self.llm_provider in ("openai", "tabbyapi")
+
     @property
     def llm_base_url(self) -> str:
-        return self.tabbyapi_host if self.llm_provider == "tabbyapi" else self.ollama_host
+        if self.llm_provider == "tabbyapi":
+            return self.tabbyapi_host
+        return self.llm_compat_url if self.llm_provider == "openai" else self.ollama_host
 
     @property
     def llm_model(self) -> str:
-        return self.tabbyapi_model if self.llm_provider == "tabbyapi" else self.ollama_model
+        if self.llm_provider == "tabbyapi":
+            return self.tabbyapi_model
+        return self.llm_compat_model if self.llm_provider == "openai" else self.ollama_model
 
 
 settings = Settings()

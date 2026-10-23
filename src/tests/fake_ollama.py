@@ -1,4 +1,8 @@
-"""Ollama simulado (httpx.MockTransport) para los tests de contrato."""
+"""Ollama simulado (httpx.MockTransport) para los tests de contrato.
+
+Sirve la API nativa (/api/tags, /api/chat) y la compatible con OpenAI (/v1/models, /v1/chat/completions) con la misma
+cola de `respuestas` y `fallos`, para probar que se puede cambiar de proveedor sin tocar el resto del sistema.
+"""
 from __future__ import annotations
 
 import json
@@ -15,7 +19,8 @@ class FakeOllama:
 
     def __init__(self, modelo="qwen3:14b", modelos=("qwen3:14b",)):
         self.modelo, self.modelos = modelo, list(modelos)
-        self.peticiones: list[dict] = []     # payloads de /api/chat
+        self.peticiones: list[dict] = []     # payloads de /api/chat o /v1/chat/completions
+        self.cabeceras: list[dict] = []      # cabeceras de cada petición de chat
         self.respuestas: list = []
         self.fallos: list = []
         self.llamadas_chat = 0
@@ -33,9 +38,13 @@ class FakeOllama:
                 raise httpx.ConnectError("simulado: conexión rechazada", request=req)
             if req.url.path == "/api/tags":
                 return httpx.Response(200, json={"models": [{"name": m, "model": m} for m in self.modelos]})
-            if req.url.path == "/api/chat":
+            if req.url.path == "/v1/models":
+                return httpx.Response(200, json={"object": "list", "data": [{"id": m, "object": "model"} for m in self.modelos]})
+            if req.url.path in ("/api/chat", "/v1/chat/completions"):
+                compat = req.url.path.startswith("/v1")
                 self.llamadas_chat += 1
                 self.peticiones.append(json.loads(req.content))
+                self.cabeceras.append(dict(req.headers))
                 if self.fallos:
                     f = self.fallos.pop(0)
                     if f == "connect":
@@ -57,6 +66,10 @@ class FakeOllama:
                     r = json.dumps({"evaluacion": r, "reaccion": "Gracias por contármelo, lo he entendido."})
                 elif isinstance(r, dict):
                     r = json.dumps(r)
+                if compat:
+                    return httpx.Response(200, json={
+                        "model": self.modelo, "choices": [{"index": 0, "message": {"role": "assistant", "content": r}}],
+                        "usage": {"prompt_tokens": self.prompt_eval_count, "completion_tokens": 25}})
                 return httpx.Response(200, json={
                     "model": self.modelo, "message": {"role": "assistant", "content": r},
                     "prompt_eval_count": self.prompt_eval_count, "eval_count": 25,

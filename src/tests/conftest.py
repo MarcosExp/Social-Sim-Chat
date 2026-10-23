@@ -25,6 +25,20 @@ def fake(monkeypatch):
     return f
 
 
+@pytest.fixture
+def fake_openai(monkeypatch):
+    """El mismo servidor simulado, pero atendido por el proveedor «openai» (API compatible con OpenAI)."""
+    f = FakeOllama()
+    monkeypatch.setattr(llm_client, "_TRANSPORT", f.transport())
+    monkeypatch.setattr(settings, "llm_provider", "openai")
+    monkeypatch.setattr(settings, "llm_compat_model", "qwen3:14b")
+    monkeypatch.setattr(settings, "llm_compat_url", "http://compat.test:11434")
+    monkeypatch.setattr(settings, "llm_compat_api_key", None)
+    monkeypatch.setattr(settings, "llm_compat_response_format", True)
+    monkeypatch.setattr(settings, "ollama_reintento_espera_s", 0.0)
+    return f
+
+
 def _bd_disponible():
     try:
         from sqlalchemy import text

@@ -5,7 +5,11 @@ Proveedores (LLM_PROVIDER, ver app.config):
 - "ollama":   Ollama del host (por defecto http://host.docker.internal:11434) o el servicio
               opcional `ollama` del compose. Se usa la API nativa (/api/chat) porque permite
               `think: false` (qwen3 razona por defecto) y `keep_alive`.
-- "tabbyapi": stack TabbyAPI/ExLlamaV3 externo, API compatible con OpenAI.
+- "openai":   cualquier servidor con API compatible con OpenAI (/v1/chat/completions): el /v1 de
+              Ollama, vLLM, LM Studio, TabbyAPI... Es la interfaz que fija NF2 para poder sustituir el
+              motor local sin tocar el resto del sistema. Envía `max_tokens` y, para el evaluador,
+              `response_format` json_schema; no controla `think` (se retiran los bloques <think>).
+- "tabbyapi": alias histórico de "openai" con las variables TABBYAPI_* (sin response_format).
 
 Garantías de este cliente (pensadas para 16 GB de VRAM y un único modelo cargado):
 
@@ -85,6 +89,8 @@ def _cola() -> asyncio.Semaphore:
 def _headers() -> dict[str, str]:
     if settings.llm_provider == "tabbyapi" and settings.tabbyapi_api_key:
         return {"x-api-key": settings.tabbyapi_api_key}
+    if settings.llm_provider == "openai" and settings.llm_compat_api_key:
+        return {"Authorization": f"Bearer {settings.llm_compat_api_key}"}
     return {}
 
 
@@ -140,6 +146,14 @@ async def diagnostico_llm(timeout: float = 3.0) -> dict:
         if not disponible:
             out["detalle"] = f"Ollama responde, pero el modelo '{modelo}' no está instalado. Ejecuta: ollama pull {modelo}"
             return out
+    elif settings.llm_provider == "openai":
+        ids = {m.get("id") for m in (data.get("data") or [])}
+        disponible = modelo in ids or f"{modelo}:latest" in ids
+        out["modelo_disponible"] = disponible
+        if not disponible:
+            out["detalle"] = (f"El servidor responde, pero el modelo '{modelo}' no aparece en /v1/models. "
+                              "Revisa LLM_COMPAT_MODEL o carga el modelo en el servidor.")
+            return out
     out["estado"], out["detalle"] = "ok", "ok"
     return out
 
@@ -169,6 +183,25 @@ def _payload_ollama(messages, formato, temperature, num_predict) -> dict:
     return p
 
 
+def _payload_openai(messages, formato, temperature, num_predict) -> dict:
+    p = {
+        "model": settings.llm_model,
+        "messages": messages,
+        "stream": False,
+        "temperature": settings.ollama_temperature if temperature is None else temperature,
+        "max_tokens": settings.ollama_num_predict if num_predict is None else num_predict,
+    }
+    if isinstance(formato, dict) and settings.llm_provider == "openai" and settings.llm_compat_response_format:
+        schema = {"additionalProperties": False, **formato}   # copia: SCHEMA_EVALUACION entra en la huella del evaluador
+        p["response_format"] = {"type": "json_schema", "json_schema": {"name": "respuesta", "strict": True, "schema": schema}}
+    return p
+
+
+def _sin_razonamiento(texto: str) -> str:
+    """Quita los bloques <think>...</think> que algunos modelos (qwen3) emiten si el servidor no los separa."""
+    return re.sub(r"<think>.*?</think>", "", texto, flags=re.S).strip()
+
+
 async def _post_con_reintentos(client: httpx.AsyncClient, url: str, payload: dict) -> tuple[dict, int]:
     max_r = max(0, settings.ollama_max_reintentos)
     ultimo: Exception | None = None
@@ -178,8 +211,9 @@ async def _post_con_reintentos(client: httpx.AsyncClient, url: str, payload: dic
             if r.status_code >= 500:
                 raise httpx.HTTPStatusError(f"HTTP {r.status_code}", request=r.request, response=r)
             if r.status_code == 404 and "not found" in r.text.lower():
-                raise ModeloNoEncontrado(
-                    f"El modelo '{settings.llm_model}' no está en el proveedor. Ejecuta: ollama pull {settings.llm_model}")
+                accion = (f"Ejecuta: ollama pull {settings.llm_model}" if settings.llm_provider == "ollama"
+                          else "Revisa el nombre del modelo y que esté cargado en el servidor.")
+                raise ModeloNoEncontrado(f"El modelo '{settings.llm_model}' no está en el proveedor. {accion}")
             if r.status_code >= 400:
                 raise LLMError(f"El proveedor rechazó la petición (HTTP {r.status_code}): {r.text[:200]}")
             return r.json(), intento
@@ -232,12 +266,15 @@ async def chat(messages: list[dict], *, formato: dict | str | None = None,
                         f"Ollama evaluó {res.prompt_tokens} tokens de prompt con num_ctx={settings.ollama_num_ctx}: "
                         "el prompt se ha truncado. Sube OLLAMA_NUM_CTX o acorta el historial.")
             else:
-                payload = {"model": settings.llm_model, "messages": messages,
-                           "temperature": settings.ollama_temperature if temperature is None else temperature}
+                payload = _payload_openai(messages, formato, temperature, num_predict)
                 data, intentos = await _post_con_reintentos(c, f"{base}/v1/chat/completions", payload)
+                choices = data.get("choices") or []
+                if not choices:
+                    raise RespuestaInvalida("El proveedor no devolvió ninguna respuesta (sin 'choices').")
                 u = data.get("usage") or {}
                 res = ChatResultado(
-                    texto=data["choices"][0]["message"].get("content", ""), modelo=data.get("model", settings.llm_model),
+                    texto=_sin_razonamiento((choices[0].get("message") or {}).get("content") or ""),
+                    modelo=data.get("model", settings.llm_model),
                     prompt_tokens=u.get("prompt_tokens"), eval_tokens=u.get("completion_tokens"), ollama_ms=None,
                     carga_ms=None, espera_cola_ms=espera_ms, intentos=intentos, ms_total=0)
     finally:
