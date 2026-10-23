@@ -78,3 +78,5 @@ Stack: Python 3.11 · FastAPI · SQLAlchemy · PostgreSQL 16 · scikit-learn · 
 1. **ER v2:** una única `session_data` con `origen`; las reales exigen `conversacion_id`, las sintéticas `etiqueta_real_disenada`. El entrenamiento filtra `origen='sintetico'` (hay test anti-fuga).
 2. **Intento por fila:** vista `turn_data` sobre `conversacion_turno`.
 3. **Dashboard solo por API:** no abre Postgres ni lee ficheros del modelo.
+
+El código cita las ADR-001/002/003 (ER v2, vista `turn_data`, dashboard solo por API). Su texto completo está en la documentación del NF2 y **todavía no está en este repositorio** (pendiente de incorporarlo a `docs/adr/`).
