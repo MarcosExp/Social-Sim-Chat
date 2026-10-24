@@ -14,6 +14,13 @@ from tests.fake_ollama import FakeOllama  # noqa: E402
 PREFIJO = "TST-"
 
 
+@pytest.fixture(autouse=True)
+def _sin_clave_de_terapeuta(monkeypatch):
+    """Dentro de `docker compose` API_KEY_TERAPEUTA está activa y los tests llaman sin clave (401). Los que prueban la
+    autenticación la fijan ellos mismos con monkeypatch."""
+    monkeypatch.setattr(settings, "api_key_terapeuta", None)
+
+
 @pytest.fixture
 def fake(monkeypatch):
     f = FakeOllama()
