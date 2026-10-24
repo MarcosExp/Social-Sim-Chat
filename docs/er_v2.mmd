@@ -1,7 +1,7 @@
 erDiagram
     student_profile_sim ||--o{ session_data : "tiene sesiones"
     student_profile_sim ||--o{ conversacion : "mantiene"
-    conversacion ||--o| session_data : "origina (obligatorio si origen=real; opcional en sinteticas, 013)"
+    conversacion ||--o| session_data : "origina (obligatorio si origen=real; opcional en sinteticas, mismo origen, 013)"
     conversacion ||--o{ conversacion_turno : "contiene turnos"
     conversacion_turno }o--|| turn_data : "agrupada por figura (vista, ADR-002)"
     student_profile_sim ||--o{ classifier_predictions : "predice"
@@ -74,6 +74,7 @@ erDiagram
         text guion_version
         text modelo "LLM usado"
         boolean es_prueba
+        text origen "real / sintetico; sintetico implica es_prueba (013)"
     }
 
     correccion_log {
@@ -99,7 +100,7 @@ erDiagram
         int intento "1 o 2; una fila por intento (ADR-002)"
         text texto "sensible en caso real (RGPD)"
         smallint evaluacion "0 / 1 / 2"
-        text evaluacion_origen
+        text evaluacion_origen "llm / heuristica / guarda_inyeccion / sintetico"
         smallint accuracy_corregido "efectivo = COALESCE(accuracy_corregido, evaluacion)"
         int ayudas_solicitadas
         boolean iniciativa "el menor pregunta o aporta contenido no pedido"

@@ -17,7 +17,7 @@
 --   * `hubo_respuesta` (campo del ER) es siempre TRUE: el sistema no registra turnos sin respuesta del menor (límite conocido).
 --   * es_prueba / session_id NULL: conversaciones de prueba o aún abiertas (no tienen sesión); filtrar para análisis.
 --   * Cubre las conversaciones que existan, reales o sintéticas (013: una sesión sintética puede tener conversación, siempre con
---     es_prueba = true). El origen se lee en session_data.origen a través de session_id. El generador heredado no crea turnos.
+--     origen = 'sintetico' y es_prueba = true; el origen se lee en conversacion.origen). El generador heredado no crea turnos.
 BEGIN;
 
 CREATE OR REPLACE VIEW turn_data AS
