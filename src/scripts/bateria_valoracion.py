@@ -38,6 +38,7 @@ from types import SimpleNamespace
 
 from app import conversacion as cv
 from app import llm_client
+from app.config import settings
 from app.guiones import cargar_guiones
 
 DATOS = Path(__file__).resolve().parent.parent / "tests" / "data"
@@ -49,6 +50,15 @@ UMBRALES = {
     "2": {"max_falsos2": 3, "min_buenas": 22},
     "3": {"max_falsos2": 3, "min_buenas": 21},
     "4": {"max_falsos2": 3, "min_buenas": 21},       # provisional: aún no medida con el LLM real (ver docs/modo-simulado.md)
+}
+# Con `LLM_PROVIDER=simulado` (LLM falso por reglas, docs/modo-simulado.md) se aplican ESTOS, no los del LLM: son los resultados de
+# hoy (también de NO EMPEORAR, no objetivos). La batería 3 queda por encima de los umbrales del LLM (5 falsos 2 > 3) y eso no
+# debe hacer fallar `make bateria` en el modo simulado. Las baterías 1-3 son de desarrollo; la 4 es el examen a ciegas.
+UMBRALES_SIMULADO = {
+    "1": {"max_falsos2": 0, "min_buenas": 12},
+    "2": {"max_falsos2": 0, "min_buenas": 26},
+    "3": {"max_falsos2": 5, "min_buenas": 24},
+    "4": {"max_falsos2": 1, "min_buenas": 21},
 }
 
 
@@ -116,7 +126,8 @@ def pct(a: int, b: int) -> str:
 
 def imprimir(r: dict, detalle: bool, ocultar_fallos: bool) -> None:
     h = "con historial" if r["historial"] else "sin historial"
-    g = "guarda + LLM" if r["guarda"] else "LLM solo"
+    ev = "LLM falso (simulado)" if settings.llm_simulado else "LLM"
+    g = f"guarda + {ev}" if r["guarda"] else f"{ev} solo"
     print(f"\n[batería {r['n']} · {h} · {g} · {r['repeticiones']} rep. · {r['casos']} casos]")
     print(f"  buenas valoradas 2:           {pct(r['buenas_ok'], r['buenas'])}")
     print(f"  malas valoradas 2 (falsos 2): {pct(r['falsos2'], r['malas'])}")
@@ -153,9 +164,10 @@ async def main_async(a) -> int:
             salida.append({k: v for k, v in r.items() if k not in ("fallos", "ms", "por_tipo")} |
                           {"mediana_ms": statistics.median(r["ms"]) if r["ms"] else None,
                            "por_tipo": {t: dict(c) for t, c in r["por_tipo"].items()}})
-            u = UMBRALES[n]
+            u = (UMBRALES_SIMULADO if settings.llm_simulado else UMBRALES)[n]
             if r["falsos2"] > u["max_falsos2"] * a.repeticiones or r["buenas_ok"] < u["min_buenas"] * a.repeticiones:
-                print(f"  → FUERA de umbral (falsos 2 ≤ {u['max_falsos2']}, buenas ≥ {u['min_buenas']} por pasada)")
+                print(f"  → FUERA de umbral (falsos 2 ≤ {u['max_falsos2']}, buenas ≥ {u['min_buenas']} por pasada"
+                      f"{'; umbrales del modo simulado' if settings.llm_simulado else ''})")
                 mal += 1
     if a.json:
         Path(a.json).write_text(json.dumps(salida, ensure_ascii=False, indent=2), encoding="utf-8")

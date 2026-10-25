@@ -28,6 +28,7 @@ Origen: `MarcosExp/Social-Sim-Chat`, PR #2, copiado el 12/10/2026 (commit `5d85e
 Declarado según las instrucciones de entrega del módulo (el uso de IA está permitido y debe indicarse dónde y cómo):
 - **Claude (Anthropic), como asistente de programación** con Claude Code: escritura y revisión de código del backend, dashboard, migraciones, scripts y tests (Álvaro), depuración, refactorizaciones y generación de la documentación técnica (ADR, contratos de API, informes de validación, este repositorio). El autor ejecutó y verificó el resultado (tests y pruebas manuales en su entorno); la suite tiene 159 pruebas.
 - **LLM local (Ollama, modelo `qwen3:14b`) como parte del producto**, no como herramienta de desarrollo: genera la variación de frase y la valoración 0/1/2 del turno del menor durante la conversación.
+- **Modo simulado y baterías de validación** (herramientas de desarrollo y prueba, no IA dentro del producto): las reglas de `src/app/simulado.py` (un LLM falso sin modelo) y la batería 4 (`src/tests/data/bateria_valoracion_4.json`, 104 respuestas) las escribió Claude Sonnet 5.5 con Claude Code, la batería sin consultar las reglas y antes de medirlas. La batería 3 la generó `gpt-oss:20b` (Ollama, en local). Las etiquetas de ambas **no las ha revisado ninguna persona** (hojas en `docs/revision-bateria-3.md` y `docs/revision-bateria-4.md`). Método y límites: `docs/adr/ADR-004_puntuacion_012_solo_llm.md`.
 - **Código de Marcos** (`src/generador/`, `src/ml/`): su uso de IA, si lo hubo, lo declara él en su parte de la memoria.
 
 ## Terceros

@@ -18,7 +18,7 @@ Módulo C088 · Curso de Especialización en IA y Big Data (iFP) · Grupo 12: Á
 | Generador de corpus sintético y evaluación antifuga | `src/generador/`, `src/ml/` | De Marcos, sin modificar |
 | Clasificador (RandomForest, CV por alumno, anti-fuga) | `src/scripts/train_classifier.py` | Implementado; entrena offline y escribe la predicción en `session_data` |
 | Vista `turn_data` (una fila por figura, regla 2/1/0) | migración 009 | Implementada (solo conversaciones reales) |
-| Tests (176) | `src/tests/` | Pasan; usan un Ollama simulado (`tests/fake_ollama.py`) |
+| Tests | `src/tests/` | Pasan (`make test`; el recuento lo da pytest y no se copia aquí para que no quede desactualizado); usan un Ollama simulado (`tests/fake_ollama.py`) |
 
 ## Diseñado pero NO implementado (límites conocidos)
 
@@ -40,7 +40,7 @@ make up       # crea environment/.env si falta, construye y levanta Postgres + b
 make seed     # genera el corpus sintético (100 alumnos, 1500 sesiones) y lo carga en Postgres
 make train    # entrena el clasificador y escribe las predicciones (~30 s)
 make verify   # conteos en BD (100 / 1500 / 1200) y métricas del modelo; con la semilla por defecto cumple los tres umbrales
-make test     # 176 tests de contrato con un Ollama simulado (no necesita GPU ni modelo)
+make test     # tests de contrato con un Ollama simulado (no necesita GPU ni modelo)
 ```
 
 - Dashboard: <http://localhost:8501> (pipeline, alumno, modelo, sesiones reales). API y `/docs`: <http://localhost:8010>.
@@ -53,8 +53,8 @@ make test     # 176 tests de contrato con un Ollama simulado (no necesita GPU ni
 
 El backend usa el Ollama del host (`OLLAMA_URL=http://host.docker.internal:11434`, modelo `qwen3:14b`, ~9 GB de descarga; con GPU de 16 GB va fluido).
 `make pull-model` lo descarga. Se puede probar con otro modelo más pequeño cambiando `OLLAMA_MODEL` en `environment/.env`
-(**no probado**: el prompt del evaluador 0/1/2 se afinó con `qwen3:14b`). **Sin GPU:** `make up-simulado` arranca el stack con `LLM_PROVIDER=simulado`: la
-valoración 0/1/2 la hacen reglas, sin LLM. Sirve para ejecutar y demostrar el prototipo; **no es el evaluador del producto**
+(**no probado**: el prompt del evaluador 0/1/2 se afinó con `qwen3:14b`). **Sin GPU:** `make up-simulado` arranca el stack con `LLM_PROVIDER=simulado` (después `make seed` para tener alumnos y abre `/chat/`): la
+valoración 0/1/2 la hace un LLM falso por reglas, sin modelo. Sirve para ejecutar y demostrar el prototipo; **no es el evaluador del producto**
 (en el examen a ciegas acierta 21 de 26 respuestas buenas y da 1 falso 2 de 52 malas, pero falla con sinónimos que no conoce;
 detalle y límites en [`docs/modo-simulado.md`](docs/modo-simulado.md)).
 
@@ -83,4 +83,4 @@ Stack: Python 3.11 · FastAPI · SQLAlchemy · PostgreSQL 16 · scikit-learn · 
 2. **Intento por fila:** vista `turn_data` sobre `conversacion_turno`.
 3. **Dashboard solo por API:** no abre Postgres ni lee ficheros del modelo.
 
-Cada decisión tiene su ADR en [`docs/adr/`](docs/adr/): [ADR-001](docs/adr/ADR-001_session_data_unica_con_origen.md) (`session_data` única con `origen`), [ADR-002](docs/adr/ADR-002_turn_data_vista_sobre_intentos.md) (`turn_data` como vista) y [ADR-003](docs/adr/ADR-003_dashboard_solo_por_api.md) (dashboard solo por API). Arquitectura: [`docs/arquitectura_v2.mmd`](docs/arquitectura_v2.mmd) (imagen: [`.png`](docs/arquitectura_v2.png)); modelo de datos: [`docs/er_v2.mmd`](docs/er_v2.mmd).
+Cada decisión tiene su ADR en [`docs/adr/`](docs/adr/): [ADR-001](docs/adr/ADR-001_session_data_unica_con_origen.md) (`session_data` única con `origen`), [ADR-002](docs/adr/ADR-002_turn_data_vista_sobre_intentos.md) (`turn_data` como vista) [ADR-003](docs/adr/ADR-003_dashboard_solo_por_api.md) (dashboard solo por API) y [ADR-004](docs/adr/ADR-004_puntuacion_012_solo_llm.md) (puntuación 0/1/2 solo con el LLM y su comprobación con respuestas etiquetadas). Arquitectura: [`docs/arquitectura_v2.mmd`](docs/arquitectura_v2.mmd) (imagen: [`.png`](docs/arquitectura_v2.png)); modelo de datos: [`docs/er_v2.mmd`](docs/er_v2.mmd).

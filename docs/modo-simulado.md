@@ -2,6 +2,7 @@
 
 Estado: implementado y medido el 25/10/2026. **No es el evaluador del producto.** Es una forma de ejecutar y demostrar el prototipo
 sin GPU, y un plan B para la defensa. Código: `src/app/simulado.py`. Tests: `src/tests/test_simulado.py`.
+Decisión y método de comprobación: [`ADR-004`](adr/ADR-004_puntuacion_012_solo_llm.md) (la puntuación 0/1/2 la asigna solo el LLM; aquí el LLM es falso).
 
 ## Para qué sirve y para qué no
 
@@ -13,7 +14,10 @@ sin GPU, y un plan B para la defensa. Código: `src/app/simulado.py`. Tests: `sr
 
 ## Cómo se activa
 
-- `make up-simulado` (equivale a `LLM_PROVIDER=simulado` en `environment/.env`).
+- `make up-simulado` (equivale a `LLM_PROVIDER=simulado` en `environment/.env`). Después `make seed` (sin alumnos no hay con quién conversar) y
+  abre `http://localhost:8010/chat/`. En ese stack, `make smoke` y `make bateria` usan el modo simulado (`make bateria` aplica los umbrales
+  de este modo, no los del LLM). Probado de principio a fin con Docker el 25/10/2026: `up-simulado`, `seed`, `train`, `verify` (100/1500/1200),
+  conversación completa, `migrate` tres veces y `bateria`.
 - `GET /health` responde `ok` con `llm_provider: simulado` y no depende de ningún servidor.
 - La página del chat añade «MODO SIMULADO: la valoración es por reglas, sin IA» a su aviso.
 - `SIMULADO_REGISTRA_SESIONES=false` (por defecto): las conversaciones simuladas son de prueba (`es_prueba`) y **no** crean sesión
@@ -75,7 +79,8 @@ Cómo leerlo:
   la batería 3 afinada **no** los cumple (5 falsos 2).
 - Referencia del LLM con guarda (`scripts/bateria_valoracion.py`, 12/10/2026): batería 3 con 0-1 falsos 2 de 52 y 23/26 buenas.
   La batería 4 **no se ha medido con el LLM real**, así que no hay comparación directa en ella.
-- Las etiquetas de las baterías 3 y 4 no las ha revisado una persona (`revisada_por_humano: false`).
+- Las etiquetas de las baterías 3 y 4 no las ha revisado una persona (`revisada_por_humano: false`; hojas de revisión en
+  [`revision-bateria-3.md`](revision-bateria-3.md) y [`revision-bateria-4.md`](revision-bateria-4.md)).
 - La batería 4 la escribió quien también escribió las reglas (Claude), sin mirar el léxico, pero conociendo el tipo de sistema.
   Es un examen a ciegas imperfecto; una segunda batería escrita por otra persona sería mejor.
 

@@ -5,8 +5,10 @@ Qué se comprueba: las reglas por separado, una conversación completa por la AP
 con las baterías no empeore. Los umbrales de regresión son los de HOY, no un objetivo de calidad.
 """
 import asyncio
+import sys
 from types import SimpleNamespace as T
 
+import httpx
 import pytest
 from sqlalchemy import text
 
@@ -155,22 +157,55 @@ def test_health_en_modo_simulado_no_depende_de_ningun_servidor(cliente, fake, mo
     assert h["llm_model"] == "simulado" and h["llm_modelo_disponible"] is True
 
 
+# El script `make smoke` también se usa con el modo simulado (hallazgo de la auditoría del 25/10: fallaba con TypeError porque
+# el modo simulado no mide tokens —`prompt_tokens` llega `None`— y con IndexError si la base de datos no tiene alumnos).
+def test_el_script_de_humo_funciona_en_modo_simulado(cliente, alumno, fake, modo_simulado, monkeypatch, capsys):
+    from scripts import smoke_conversacion as s
+    monkeypatch.setattr(s.httpx, "Client", lambda **kw: cliente)
+    monkeypatch.setattr(sys, "argv", ["smoke_conversacion", "--student", alumno])
+    assert s.main() == 0
+    salida = capsys.readouterr().out
+    assert "modelo=simulado" in salida and "Prueba de humo superada" in salida
+
+
+def test_el_script_de_humo_avisa_si_no_hay_alumnos(cliente, fake, modo_simulado, monkeypatch, capsys):
+    from scripts import smoke_conversacion as s
+
+    class SinAlumnos:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a):
+            return False
+
+        def get(self, url, **kw):
+            return httpx.Response(200, json=[]) if url == "/students" else cliente.get(url, **kw)
+
+    monkeypatch.setattr(s.httpx, "Client", lambda **kw: SinAlumnos())
+    monkeypatch.setattr(sys, "argv", ["smoke_conversacion"])
+    assert s.main() == 2
+    assert "make seed" in capsys.readouterr().out
+
+
 # ------------------------------------------------------------------------------------------------ calidad medida
-# Umbrales de NO EMPEORAR con las reglas de hoy (no son objetivos). Baterías 1-3: conjunto de DESARROLLO (las reglas se
-# afinaron con ellas; la 3 solo tras su primer examen). Batería 4: examen a ciegas, medido una vez con las reglas ya congeladas.
-UMBRALES_SIMULADO = {
-    "1": {"max_falsos2": 0, "min_buenas": 12},
-    "2": {"max_falsos2": 0, "min_buenas": 26},
-    "3": {"max_falsos2": 5, "min_buenas": 24},
-    "4": {"max_falsos2": 1, "min_buenas": 21},
-}
-
-
+# Umbrales de NO EMPEORAR con las reglas de hoy (no son objetivos): `scripts.bateria_valoracion.UMBRALES_SIMULADO`, los mismos que
+# aplica `make bateria` con el modo simulado. Baterías 1-3: conjunto de DESARROLLO (las reglas se afinaron con ellas; la 3 solo
+# tras su primer examen). Batería 4: examen a ciegas, medido una vez con las reglas ya congeladas.
 @pytest.mark.parametrize("n", ["1", "2", "3", "4"])
 def test_la_calidad_del_simulado_no_empeora(n, modo_simulado):
     from scripts import bateria_valoracion as b
     r = asyncio.run(b.ejecutar(n, con_historial=False, repeticiones=1, con_guarda=True))
-    u = UMBRALES_SIMULADO[n]
+    u = b.UMBRALES_SIMULADO[n]
     assert r["falsos2"] <= u["max_falsos2"], r["fallos"]
     assert r["buenas_ok"] >= u["min_buenas"], r["fallos"]
     assert not r["ms"] or max(r["ms"]) < 200                              # reglas: milisegundos, sin LLM
+
+
+def test_make_bateria_con_el_modo_simulado_usa_sus_umbrales_y_no_falla(modo_simulado, capsys):
+    """Hallazgo de la auditoría del 25/10: con `make up-simulado`, `make bateria` terminaba con error porque aplicaba los
+    umbrales del LLM a la batería 3 (5 falsos 2 > 3) y decía «guarda + LLM»."""
+    from scripts import bateria_valoracion as b
+    a = T(bateria="todas", historial="sin", repeticiones=1, sin_guarda=False, detalle=False, ocultar_fallos=True, json=None)
+    assert asyncio.run(b.main_async(a)) == 0
+    salida = capsys.readouterr().out
+    assert "LLM falso (simulado)" in salida and "FUERA de umbral" not in salida

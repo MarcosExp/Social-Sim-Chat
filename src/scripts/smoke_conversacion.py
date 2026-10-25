@@ -73,7 +73,11 @@ def main() -> int:
             if r.status_code in (401, 403):
                 print("✗ /students exige la clave del terapeuta: define API_KEY_TERAPEUTA o usa --api-key, o pasa --student.")
                 return 2
-            sid = r.json()[0]["student_id"]
+            alumnos = r.json()
+            if not alumnos:
+                print("✗ No hay alumnos en la base de datos: carga el corpus con `make seed` o pasa --student.")
+                return 2
+            sid = alumnos[0]["student_id"]
         else:
             sid = a.student
         body = {"student_id": sid, "prueba": True, **({"competencia": a.competencia} if a.competencia else {})}
@@ -102,7 +106,8 @@ def main() -> int:
             f = lambda k: f"{llm[k] / 1000:.2f}" if llm and llm.get(k) is not None else "-"  # noqa: E731
             print(f"{n:>2} {conv['nodo_actual']:<5} {str(conv.get('evaluacion') if llm else '-'):>4} {ms / 1000:>8.2f} "
                   f"{f('ollama_ms'):>9} {f('carga_ms'):>8} {f('espera_cola_ms'):>7} "
-                  f"{(llm or {}).get('prompt_tokens', '-'):>7}  {conv['turno_bot']['texto'][:60]!r}")
+                  f"{str((llm or {}).get('prompt_tokens') if (llm or {}).get('prompt_tokens') is not None else '-'):>7}  "
+                  f"{conv['turno_bot']['texto'][:60]!r}")   # el modo simulado no mide tokens: llega None
 
         con_llm = [x for x in filas if x["llm"]]
         sin_llm = [x for x in filas if not x["llm"]]

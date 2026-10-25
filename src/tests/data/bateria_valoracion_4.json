@@ -3,7 +3,7 @@
  "generador": "Claude Sonnet 5.5",
  "fecha": "2026-10-25",
  "revisada_por_humano": false,
- "revision": "Cambiar `esperado` si no se está de acuerdo y poner revisada_por_humano=true.",
+ "revision": "docs/revision-bateria-4.md (marcar cada caso; cambiar `esperado` aquí si no se está de acuerdo y poner revisada_por_humano=true)",
  "casos": [
   {
    "id": "b4-001",
