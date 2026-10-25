@@ -24,6 +24,8 @@ class Settings(BaseSettings):
     # "openai"   -> cualquier servidor con API compatible con OpenAI (/v1/chat/completions): el /v1 de Ollama,
     #               vLLM, LM Studio, TabbyAPI... Es la interfaz que fija NF2 para sustituir el motor local.
     # "tabbyapi" -> alias histórico de "openai" con las variables TABBYAPI_* (stack TabbyAPI/ExLlamaV3 externo).
+    # "simulado" -> sin LLM ni GPU: valoración 0/1/2 por reglas (app/simulado.py). Para ejecutar y evaluar el prototipo en cualquier
+    #               equipo (historia 11) y como plan B; NO es el evaluador del producto (ver docs/modo-simulado.md).
     # Ver environment/.env.example para cómo apuntarlo a tu PC y qué modelo usar.
     llm_provider: str = "ollama"
 
@@ -43,6 +45,10 @@ class Settings(BaseSettings):
     ollama_reintento_espera_s: float = 0.5   # espera inicial; se duplica en cada reintento
     ollama_cola_timeout_s: float = 120.0     # máx. espera para entrar en la cola (1 petición a la vez)
 
+    # Modo simulado: sus conversaciones son `es_prueba` (no generan sesión ni métricas reales) para no mezclar valoraciones por reglas
+    # con datos reales. Ponlo a true SOLO en una base de datos de demostración, para ver el recorrido completo en el dashboard.
+    simulado_registra_sesiones: bool = False
+
     tabbyapi_host: str = "http://host.docker.internal:5000"
     tabbyapi_model: str = "Qwen3.8-27B-EXL3-3.0bpw"
     tabbyapi_api_key: str | None = None
@@ -59,6 +65,10 @@ class Settings(BaseSettings):
     llm_compat_response_format: bool = True
 
     @property
+    def llm_simulado(self) -> bool:
+        return self.llm_provider == "simulado"
+
+    @property
     def llm_openai_compatible(self) -> bool:
         return self.llm_provider in ("openai", "tabbyapi")
 
@@ -70,6 +80,8 @@ class Settings(BaseSettings):
 
     @property
     def llm_model(self) -> str:
+        if self.llm_provider == "simulado":
+            return "simulado"
         if self.llm_provider == "tabbyapi":
             return self.tabbyapi_model
         return self.llm_compat_model if self.llm_provider == "openai" else self.ollama_model

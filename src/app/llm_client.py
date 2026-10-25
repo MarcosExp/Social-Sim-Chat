@@ -115,6 +115,9 @@ class ChatResultado:
 # ----------------------------------------------------------------------------- diagnóstico
 async def diagnostico_llm(timeout: float = 3.0) -> dict:
     """Estado del proveedor para /health: {estado, detalle, modelo, modelo_disponible}."""
+    if settings.llm_simulado:
+        from app import simulado
+        return simulado.diagnostico()
     base = settings.llm_base_url.rstrip("/")
     modelo = settings.llm_model
     out = {"estado": "error", "detalle": "", "modelo": modelo, "modelo_disponible": None}
