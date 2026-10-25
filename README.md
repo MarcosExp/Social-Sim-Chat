@@ -53,10 +53,12 @@ make test     # 176 tests de contrato con un Ollama simulado (no necesita GPU ni
 
 El backend usa el Ollama del host (`OLLAMA_URL=http://host.docker.internal:11434`, modelo `qwen3:14b`, ~9 GB de descarga; con GPU de 16 GB va fluido).
 `make pull-model` lo descarga. Se puede probar con otro modelo más pequeño cambiando `OLLAMA_MODEL` en `environment/.env`
-(**no probado**: el prompt del evaluador 0/1/2 se afinó con `qwen3:14b`). Tampoco hay todavía un modo «LLM simulado» ejecutable
-en el stack (solo en los tests): está pendiente de decidir quién lo hace.
+(**no probado**: el prompt del evaluador 0/1/2 se afinó con `qwen3:14b`). **Sin GPU:** `make up-simulado` arranca el stack con `LLM_PROVIDER=simulado`: la
+valoración 0/1/2 la hacen reglas, sin LLM. Sirve para ejecutar y demostrar el prototipo; **no es el evaluador del producto**
+(en el examen a ciegas acierta 21 de 26 respuestas buenas y da 1 falso 2 de 52 malas, pero falla con sinónimos que no conoce;
+detalle y límites en [`docs/modo-simulado.md`](docs/modo-simulado.md)).
 
-**Motor sustituible (API compatible con OpenAI).** Por defecto el backend usa la API nativa de Ollama (`LLM_PROVIDER=ollama`, necesaria para `think:false`). Con `LLM_PROVIDER=openai` habla con cualquier servidor compatible con OpenAI (`/v1/chat/completions`: el `/v1` de Ollama, vLLM, LM Studio, TabbyAPI…) configurado con `LLM_COMPAT_URL`, `LLM_COMPAT_MODEL` y `LLM_COMPAT_API_KEY`, sin cambiar nada más del sistema. Está probado con un servidor simulado (conversación completa por la API, `/health`, errores y reintentos); **no está probado con un servidor real**. Con qwen3 esta vía no puede apagar el razonamiento, así que es más lenta: se recomienda `ollama` para qwen3.
+**Motor sustituible (API compatible con OpenAI).** Por defecto el backend usa la API nativa de Ollama (`LLM_PROVIDER=ollama`, necesaria para `think:false`). Con `LLM_PROVIDER=openai` habla con cualquier servidor compatible con OpenAI (`/v1/chat/completions`: el `/v1` de Ollama, vLLM, LM Studio, TabbyAPI…) configurado con `LLM_COMPAT_URL`, `LLM_COMPAT_MODEL` y `LLM_COMPAT_API_KEY`, sin cambiar nada más del sistema. Está probado con un servidor simulado en los tests y con un servidor real (Ollama 0.40.11 por su `/v1`, `qwen3:0.6b` en CPU: conversación completa con `make smoke`). Con qwen3 hace falta `LLM_COMPAT_REASONING_EFFORT=none` (el valor por defecto): sin él el razonamiento se come `max_tokens` y la respuesta llega cortada. **No está probado con `qwen3:14b` por esta vía ni con vLLM, LM Studio o TabbyAPI**; con `qwen3:14b` sigue siendo preferible `ollama`, que es con lo que se validó el evaluador.
 
 ## Estructura
 

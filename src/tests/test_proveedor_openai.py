@@ -158,3 +158,23 @@ def test_health_informa_del_proveedor_y_del_modelo(cliente_openai, fake_openai):
     fake_openai.modelos = []
     h = cliente_openai.get("/health").json()
     assert h["status"] == "degraded" and "LLM_COMPAT_MODEL" in h["llm"]
+
+
+def test_pide_reasoning_effort_none_por_defecto_y_se_puede_quitar(fake_openai, monkeypatch):
+    """Con el /v1 de Ollama y qwen3 el razonamiento se come max_tokens (medido en real): por defecto se desactiva."""
+    run(chat(MSG))
+    monkeypatch.setattr(settings, "llm_compat_reasoning_effort", None)
+    run(chat(MSG))
+    assert fake_openai.peticiones[0]["reasoning_effort"] == "none"
+    assert "reasoning_effort" not in fake_openai.peticiones[1]
+
+
+def test_respuesta_cortada_por_longitud_explica_como_arreglarlo(fake_openai, monkeypatch):
+    import httpx
+
+    cortada = {"model": "x", "choices": [{"index": 0, "finish_reason": "length",
+                                          "message": {"role": "assistant", "content": '{\n\n"analis'}}]}
+    monkeypatch.setattr(llm_client, "_TRANSPORT", httpx.MockTransport(lambda req: httpx.Response(200, json=cortada)))
+    with pytest.raises(RespuestaInvalida, match="LLM_COMPAT_REASONING_EFFORT"):
+        run(chat(MSG, formato=SCHEMA_EVALUACION))
+    assert run(chat(MSG)).texto == '{\n\n"analis'          # sin formato JSON exigido, un texto largo cortado sigue siendo utilizable

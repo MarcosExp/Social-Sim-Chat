@@ -1,4 +1,4 @@
-.PHONY: bateria metricas test smoke up down logs migrate seed train pipeline demo dashboard pull-model health verify reset
+.PHONY: up-simulado bateria metricas test smoke up down logs migrate seed train pipeline demo dashboard pull-model health verify reset
 
 COMPOSE = docker compose -f environment/docker-compose.yml --env-file environment/.env
 
@@ -35,6 +35,10 @@ train:
 # Calcula las métricas de las conversaciones reales terminadas y las compara con el corpus de entrenamiento.
 metricas:
 	$(COMPOSE) exec backend python -m scripts.metricas_reales
+
+# Arranca el stack SIN LLM ni GPU: la valoración 0/1/2 la hacen reglas (docs/modo-simulado.md). Solo para ejecutar y demostrar.
+up-simulado: export LLM_PROVIDER = simulado
+up-simulado: up
 
 # Tests de contrato (Ollama simulado, Postgres del stack). Instala pytest en el contenedor la primera vez.
 test:

@@ -10,12 +10,15 @@ Cada caso es una respuesta del «menor» a un nodo del guion con el conjunto de 
   - buena      -> [2]
   - mala       -> [0]            (literal, opuesta, eco, evasiva, fuera de tema, vacía, sin sentido, inyección)
   - fronteriza -> [1, 2] o [0, 1] (no se exige una nota concreta, solo que no caiga en el extremo equivocado)
-Datos en src/tests/data/bateria_valoracion_{1,2,3}.json.
+Datos en src/tests/data/bateria_valoracion_{1,2,3,4}.json.
 
   Batería 1: las 88 respuestas con las que se AFINÓ el primer prompt (regresión; sobreajustada por construcción).
   Batería 2: frases y tipos de error distintos; sirvió de DESARROLLO del segundo prompt.
   Batería 3: ~100 respuestas escritas por gpt-oss:20b (otra familia que el evaluador). NO se usa para afinar: solo para
              medir el resultado final. Sus etiquetas las revisa un humano (campo `revisada_por_humano`).
+
+  Batería 4: 104 respuestas escritas por Claude el 25/10/2026 SIN consultar las reglas del modo simulado y antes de medirlas;
+             es el examen del modo `LLM_PROVIDER=simulado` (se ejecutó una vez con las reglas congeladas). Etiquetas sin revisar.
 
 Se valora como en producción: primero la guarda de inyecciones en código y, si no salta, el LLM (`--sin-guarda` mide el LLM
 solo). Métricas: buenas con 2, falsos 2 (mala valorada 2), sobrevaloración 1, fronterizas dentro de lo aceptable y mediana de
@@ -45,6 +48,7 @@ UMBRALES = {
     "1": {"max_falsos2": 3, "min_buenas": 12},
     "2": {"max_falsos2": 3, "min_buenas": 22},
     "3": {"max_falsos2": 3, "min_buenas": 21},
+    "4": {"max_falsos2": 3, "min_buenas": 21},       # provisional: aún no medida con el LLM real (ver docs/modo-simulado.md)
 }
 
 
@@ -142,7 +146,7 @@ async def main_async(a) -> int:
         print(f"✗ Ollama no está listo: {h}")
         return 2
     mal, salida = 0, []
-    for n in (["1", "2", "3"] if a.bateria == "todas" else [a.bateria]):
+    for n in (["1", "2", "3", "4"] if a.bateria == "todas" else [a.bateria]):
         for con in ({"sin": [False], "con": [True], "ambos": [False, True]}[a.historial]):
             r = await ejecutar(n, con, a.repeticiones, not a.sin_guarda)
             imprimir(r, a.detalle, a.ocultar_fallos)
@@ -160,7 +164,7 @@ async def main_async(a) -> int:
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--bateria", choices=["1", "2", "3", "todas"], default="todas")
+    ap.add_argument("--bateria", choices=["1", "2", "3", "4", "todas"], default="todas")
     ap.add_argument("--historial", choices=["sin", "con", "ambos"], default="ambos")
     ap.add_argument("--repeticiones", type=int, default=1)
     ap.add_argument("--detalle", action="store_true", help="acierto por tipo de respuesta")

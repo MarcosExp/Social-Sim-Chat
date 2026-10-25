@@ -190,4 +190,9 @@
     if (ev.key === "Enter" && !ev.shiftKey) { ev.preventDefault(); $("form-turno").requestSubmit(); }
   });
   cargarAlumnos();
+  // Modo simulado (LLM_PROVIDER=simulado): que se vea que NO hay IA detrás, para no presentarlo como tal.
+  fetch(API + "/health").then((r) => r.json()).then((h) => {
+    const aviso = document.querySelector(".aviso");
+    if (h && h.llm_provider === "simulado" && aviso) aviso.textContent += " MODO SIMULADO: la valoración es por reglas, sin IA.";
+  }).catch(() => { /* el aviso es opcional */ });
 })();

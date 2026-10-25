@@ -63,6 +63,10 @@ class Settings(BaseSettings):
     # Pide al servidor el JSON del evaluador con response_format=json_schema. Si tu servidor lo rechaza (HTTP 400), ponlo a false:
     # el cliente extrae el JSON del texto igualmente.
     llm_compat_response_format: bool = True
+    # Esfuerzo de razonamiento que se pide al servidor. Con el /v1 de Ollama y un modelo que razona (qwen3), el razonamiento
+    # consume max_tokens y la respuesta llega cortada ("{\n\"analis"): "none" lo desactiva (como think=false en la API nativa).
+    # Vacío = no se envía el campo (úsalo si tu servidor lo rechaza con HTTP 400). Medido con Ollama 0.40 y qwen3:0.6b.
+    llm_compat_reasoning_effort: str | None = "none"
 
     @property
     def llm_simulado(self) -> bool:

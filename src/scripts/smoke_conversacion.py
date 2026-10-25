@@ -52,9 +52,12 @@ def main() -> int:
     ap.add_argument("--max-p50", type=float, default=10.0, help="umbral de mediana por turno con LLM (s)")
     ap.add_argument("--max-turno", type=float, default=60.0, help="umbral del peor turno (s), incluida carga en frío")
     ap.add_argument("--json", dest="salida", help="guarda el informe en este fichero")
+    ap.add_argument("--api-key", default=os.getenv("API_KEY_TERAPEUTA"),
+                    help="clave de la API del terapeuta (cabecera X-API-Key; por defecto, la variable API_KEY_TERAPEUTA)")
     a = ap.parse_args()
 
-    with httpx.Client(base_url=a.url, timeout=a.timeout) as c:
+    cabeceras = {"X-API-Key": a.api_key} if a.api_key else {}
+    with httpx.Client(base_url=a.url, timeout=a.timeout, headers=cabeceras) as c:
         try:
             h = c.get("/health", timeout=10).json()
         except httpx.HTTPError as exc:
@@ -65,7 +68,14 @@ def main() -> int:
             print("✗ El motor LLM no está listo; no tiene sentido medir. Arréglalo con el mensaje de arriba.")
             return 2
 
-        sid = a.student or c.get("/students").json()[0]["student_id"]
+        if not a.student:
+            r = c.get("/students")
+            if r.status_code in (401, 403):
+                print("✗ /students exige la clave del terapeuta: define API_KEY_TERAPEUTA o usa --api-key, o pasa --student.")
+                return 2
+            sid = r.json()[0]["student_id"]
+        else:
+            sid = a.student
         body = {"student_id": sid, "prueba": True, **({"competencia": a.competencia} if a.competencia else {})}
         r, _ = pedir(c, "POST", "/conversaciones", json=body)
         if r.status_code != 201:

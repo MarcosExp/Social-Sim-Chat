@@ -3,7 +3,7 @@
     python -m pytest -m humo -s tests/test_bateria_valoracion.py
     (o sin pytest: python -m scripts.bateria_valoracion --detalle)
 
-Datos en tests/data/bateria_valoracion_{1,2}.json. Los umbrales están en scripts/bateria_valoracion.py.
+Datos en tests/data/bateria_valoracion_{1,2,3,4}.json. Los umbrales están en scripts/bateria_valoracion.py.
 """
 import json
 import sys
@@ -15,7 +15,7 @@ def test_datos_de_las_baterias_son_coherentes():
     from scripts import bateria_valoracion as b
     from app.guiones import cargar_guiones
     ids = {t.id for g in cargar_guiones().competencias.values() for t in g.turnos}
-    for n, esperado in (("1", 88), ("2", 100), ("3", 100)):
+    for n, esperado in (("1", 88), ("2", 100), ("3", 100), ("4", 100)):
         casos = b.cargar(n)
         assert len(casos) >= esperado
         assert all(c["nodo"] in ids and c["respuesta"].strip() and set(c["esperado"]) <= {0, 1, 2} for c in casos)
