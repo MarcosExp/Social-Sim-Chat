@@ -13,7 +13,7 @@ Origen: `MarcosExp/Social-Sim-Chat`, PR #2, copiado el 12/10/2026 (commit `5d85e
 
 ## Código y documentación de Álvaro García Puche
 
-- Backend `src/app/` (API, conversación con Ollama, métricas reales, autenticación, correcciones), migraciones 002→011,
+- Backend `src/app/` (API, conversación con Ollama, métricas reales, autenticación, correcciones), migraciones 002→013,
   dashboard `src/dashboard/`, chat `src/app/static/chat/`, scripts de `src/scripts/` salvo los heredados, tests `src/tests/`,
   `environment/`, `scripts/`, `Makefile` y la documentación de `docs/` (salvo los JSON de validación).
 - Desarrollado con ayuda de Claude (Anthropic) como asistente de programación; los commits llevan esa atribución.
