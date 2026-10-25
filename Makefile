@@ -38,7 +38,7 @@ metricas:
 
 # Tests de contrato (Ollama simulado, Postgres del stack). Instala pytest en el contenedor la primera vez.
 test:
-	$(COMPOSE) exec backend sh -c 'pip install -q -r requirements-dev.txt && python -m pytest'
+	$(COMPOSE) exec backend sh -c 'pip install -q -r requirements-dev.txt -c constraints.txt && python -m pytest'
 
 # Prueba de humo REAL: una conversación completa contra tu Ollama, midiendo la latencia por turno.
 smoke:

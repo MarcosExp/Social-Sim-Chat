@@ -16,6 +16,6 @@ if ($Metricas) {
 } elseif ($Humo) {
     & docker @c exec backend python -m scripts.smoke_conversacion --url http://localhost:8000
 } else {
-    & docker @c exec backend sh -c 'pip install -q -r requirements-dev.txt && python -m pytest'
+    & docker @c exec backend sh -c 'pip install -q -r requirements-dev.txt -c constraints.txt && python -m pytest'
 }
 exit $LASTEXITCODE

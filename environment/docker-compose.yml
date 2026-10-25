@@ -2,7 +2,7 @@ name: social-sim-chat
 
 services:
   db:
-    image: postgres:16-alpine
+    image: postgres:16.15-alpine@sha256:f4610795587492cd4fb887c2dc3de301b813278bb6f616992061141b5f15ac36   # etiqueta y digest: docs/versiones.md, apartado 3
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-social_sim}
@@ -23,7 +23,7 @@ services:
   # del host (OLLAMA_URL=http://host.docker.internal:11434). Para usar este: pon
   # OLLAMA_URL=http://ollama:11434 en .env y arranca con `--profile ollama-local`.
   ollama:
-    image: ollama/ollama:latest
+    image: ollama/ollama:0.40.11@sha256:dea72d1e22270fe095b68fdf756d2b489d615643c5a2eaebbc5f569181e322d8   # la versión probada con nuestro cliente (docs/versiones.md, apartado 3)
     profiles: ["ollama-local"]
     restart: unless-stopped
     ports:

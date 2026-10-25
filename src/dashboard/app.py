@@ -97,13 +97,13 @@ with tab_pipe:
         por_tray = por_tray.groupby("trayectoria", as_index=False).sum()
         c1, c2 = st.columns(2)
         c1.plotly_chart(px.bar(por_tray, x="trayectoria", y="alumnos", title="Alumnos por trayectoria diseñada"),
-                        use_container_width=True)
+                        width="stretch")
         etq = pd.DataFrame({"etiqueta": [norm(k) for k in resumen["sesiones_sinteticas_por_etiqueta"]],
                             "sesiones": list(resumen["sesiones_sinteticas_por_etiqueta"].values())})
         etq = etq.groupby("etiqueta", as_index=False).sum()
         c2.plotly_chart(px.pie(etq, names="etiqueta", values="sesiones", color="etiqueta",
                                color_discrete_map=COLORES, title="Sesiones por etiqueta real"),
-                        use_container_width=True)
+                        width="stretch")
     else:
         st.info("Base vacía. Ejecuta `make pipeline` (carga corpus + entrena clasificador).")
 
@@ -148,15 +148,15 @@ with tab_alumno:
             fig.add_trace(go.Scatter(x=ses.sesion_num, y=(v - v.min()) / rango, name=nombre, mode="lines+markers"))
         fig.update_layout(title="Evolución normalizada (0-1) de las 5 métricas", xaxis_title="Sesión",
                           yaxis_title="Escala relativa por métrica", height=380)
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
         tabla = ses[["sesion_num", "origen", "real", "etiqueta_predicha", "confianza", "es_estancamiento_operacional",
                      "corregida"]].rename(
             columns={"sesion_num": "sesión", "real": "etiqueta real (diseño)", "etiqueta_predicha": "predicha",
                      "es_estancamiento_operacional": "alerta", "corregida": "corregida (terapeuta)"}
         )
-        st.dataframe(tabla, use_container_width=True, hide_index=True)
+        st.dataframe(tabla, width="stretch", hide_index=True)
         st.caption("Valores crudos de las métricas")
-        st.dataframe(ses[["sesion_num", *METRICAS.keys()]], use_container_width=True, hide_index=True)
+        st.dataframe(ses[["sesion_num", *METRICAS.keys()]], width="stretch", hide_index=True)
 
 # ------------------------------------------------------------------ Modelo
 with tab_modelo:
@@ -182,7 +182,7 @@ with tab_modelo:
         st.plotly_chart(
             px.imshow(mc["valores"], x=mc["etiquetas"], y=mc["etiquetas"], text_auto=True,
                       labels=dict(x="Predicha", y="Real", color="Sesiones"), title="Matriz de confusión (out-of-fold)"),
-            use_container_width=True,
+            width="stretch",
         )
         h = m.get("heuristica")
         if h:
@@ -226,7 +226,7 @@ with tab_conv:
             n = st.select_slider("Sesión", options=nums)
             fila = sint_alumno[sint_alumno["sesion_num"] == n].iloc[0]
             cols = ["sesion_num", "competencia", "aMLU", "latencia_pragmatica_ms", "IRC_pct", "PEPE", "pct_DET", "etiqueta_real_disenada"]
-            st.dataframe(fila[[c for c in cols if c in fila.index]].to_frame("valor"), use_container_width=True)
+            st.dataframe(fila[[c for c in cols if c in fila.index]].astype(str).to_frame("valor"), width="stretch")   # mezcla texto y números: Arrow no la admite sin convertir
             st.info("Las sesiones sintéticas solo tienen métricas por sesión: no hay turnos de conversación "
                     "(`generar_turnos.py` está pendiente). Los turnos de las sesiones reales están en la pestaña «Sesiones reales».")
 
@@ -248,7 +248,7 @@ with tab_real:
         st.dataframe(vista.rename(columns={"pct_DET": "pct_DET (provisional)", "aMLU": "aMLU (provisional: evaluador)",
                                            "PEPE": "PEPE (provisional: evaluador)", "IRC_pct": "IRC_pct (provisional: evaluador)",
                                            "created_at": "creada (hora peninsular)"}),
-                     use_container_width=True, hide_index=True)
+                     width="stretch", hide_index=True)
         st.warning("**aMLU, PEPE e IRC son provisionales** hasta validar el evaluador 0/1/2: el prompt cambió (p3, con guarda de "
                    "inyecciones) y aún no se ha validado con conversaciones reales ni con la batería 3 revisada por una persona; "
                    "las sesiones de abajo se valoraron con versiones anteriores (columna `evaluador_version` de cada turno; "
@@ -268,11 +268,11 @@ with tab_real:
             detalle = api.leer(f"/conversaciones/{elegida}")
             st.dataframe(df(detalle["turnos"])[["orden", "rol", "nodo", "intento", "texto", "evaluacion", "accuracy_corregido",
                                                 "rama", "latencia_ms", "llm_ms", "iniciativa"]],
-                         use_container_width=True, hide_index=True)
+                         width="stretch", hide_index=True)
             st.caption("Por figura (vista `turn_data` del ER: una fila por figura, no por intento):")
             st.dataframe(df(api.leer(f"/conversaciones/{elegida}/figuras")).drop(
                 columns=["turn_id", "session_id", "conversacion_id", "texto_respuesta", "es_prueba"], errors="ignore"),
-                use_container_width=True, hide_index=True)
+                width="stretch", hide_index=True)
         sint = df(api.leer("/sessions", origen="sintetico"))
         filas = []
         for col, nombre in METRICAS.items():
@@ -287,7 +287,7 @@ with tab_real:
                           "% real fuera del rango sintético": round(100 * ((r_ < s_.min()) | (r_ > s_.max())).mean(), 1)})
         st.subheader("Real vs. corpus de entrenamiento")
         if filas:
-            st.dataframe(pd.DataFrame(filas), use_container_width=True, hide_index=True)
+            st.dataframe(pd.DataFrame(filas), width="stretch", hide_index=True)
         else:
             st.info("Sin corpus sintético con el que comparar. Ejecuta `make seed`.")
         if len(real) < 20:
@@ -359,4 +359,4 @@ with tab_consola:
         else:
             log["fecha"] = hora_peninsular(log["fecha"])
             st.dataframe(log[["fecha", "autor", "tipo", "orden", "campo", "valor_anterior", "valor_nuevo"]]
-                         .rename(columns={"fecha": "fecha (hora peninsular)"}), hide_index=True, use_container_width=True)
+                         .rename(columns={"fecha": "fecha (hora peninsular)"}), hide_index=True, width="stretch")
