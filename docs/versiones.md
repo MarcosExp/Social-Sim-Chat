@@ -77,7 +77,7 @@ Leído el 25/10/2026 de los ficheros del propio PC, en solo lectura. **Los regis
 |---|---|---|---|
 | Equipo | Ryzen 7 5800X · 32 GB · RTX 5060 Ti 16 GB (15,9 GiB visibles, Blackwell, compute 12.0) · Windows 11 Pro, build 22631 | `C:\IA LOCAL\MANIFIESTO.md` (03/09); registro de Ollama (25/10) | Sí |
 | `qwen3:14b` | manifiesto `sha256:8d6c98e1c8dbb1d0efa1522a150672d846a79c8f9b6b6e4309ab6a17c90dd038` (ID de `ollama list`: `8d6c98e1c8db`); GGUF `sha256:a8cc1361f3145dc01f6d77c6c82c9116b9ffe3c97b34716fe20418455876c40e`, 9.276.184.896 bytes, 14,8 B parámetros; **cuantización Q4_K_M** (`general.file_type = 15` en la cabecera del GGUF y `Q4_K_M` en el manifiesto) | `C:\Users\agarc\.ollama\models` (25/10): manifiesto escrito el 05/09/2026 01:45; el mismo ID consta en `C:\IA LOCAL\_publicar\d1-decision-bench\docs\METHOD.md` (09/10) | **Sí**: descargado antes del 12/10 y con el mismo ID el 09/10 |
-| Ollama | 0.34.4 (09/10) → 0.40.3 (17/10) → 0.40.6 (desde el 18/10 a las 17:26; es la que corre hoy). **La actualización automática está activada** (`auto_update_enabled = 1`): la 0.40.11 está descargada y se instala sola al reiniciar la app (el primer paquete, bajado el 25/10 a las 11:14, no pasó la verificación de firma y se volvió a descargar a las 11:15) | `METHOD.md` (09/10); `server-5.log` (17/10); `upgrade.log` y `app.log` (18/10 y 25/10); ajustes de la app (25/10) | **No se sabe cuál**: el 12/10 estaba entre la 0.34.4 y la 0.40.3 |
+| Ollama | 0.34.4 (09/10) → 0.40.3 (17/10) → 0.40.6 (18/10 a las 17:26 hasta el 25/10 a las 19:15) → **0.40.11 (desde el 25/10 a las 19:15; es la que corre hoy)**. **La actualización automática está desactivada** desde el 25/10 a las 20:53 (`auto_update_enabled = 0`). El primer paquete de la 0.40.11, bajado a las 11:14, no pasó la verificación de firma; el segundo (1.662.012.016 bytes) tiene el SHA-256 de la release oficial (`87309d23…5508`) y se instaló a las 19:15 (`upgrade.log`) | `METHOD.md` (09/10); `server-5.log` (17/10); `upgrade.log` y `app.log` (18/10 y 25/10); ajustes de la app (25/10) | **No se sabe cuál**: el 12/10 estaba entre la 0.34.4 y la 0.40.3 |
 | Opciones del servidor Ollama | contexto 131072, flash attention activada, caché KV `q4_0`, `keep alive` 5 min, un modelo cargado, una petición a la vez, escucha en 0.0.0.0:11434 | `server-5.log` (17/10) y `server.log` (25/10), iguales; ya estaban recomendadas en `C:\IA LOCAL\README.md` | Probable |
 | Controlador NVIDIA | **617.42** el 25/10 a las 16:14 (`nvidia-smi`: KMD 617.42, CUDA 13.4); 617.14 el 09/10; 616.56 el 03/09 | captura de `nvidia-smi` de Álvaro (25/10); `METHOD.md`; `MANIFIESTO.md` | **No se sabe**: el 12/10 estaba entre las dos (617.14 el 09/10, 617.42 hoy) y no consta cuándo se actualizó. No se pudo leer el registro del controlador (acceso denegado al almacén de controladores) |
 | Docker Desktop | 4.75.0 (227598), instalada el 02/06/2026; motor 29.5.2; Compose v5.1.3 y WSL2 2.7.12 (03/09, sin revalidar) | `AppData\Local\Docker\install-log.txt`; `electron-*.log` del 14/10 al 25/10; `MANIFIESTO.md` | **Sí**: misma versión desde el 02/06, sin actualizaciones registradas |
@@ -90,7 +90,9 @@ Lo que ya no se puede recuperar es la versión exacta de Ollama y la del control
 - **Contrato del cliente, comprobado el 25/10 contra la 0.40.11** (sin GPU, `qwen3:0.6b`): protocolo `openai` y API nativa `ollama` (apartado 4); en la nativa, el evaluador devolvió valoraciones con el esquema JSON (2, 0, 0, 2, 2).
 - **No comprobado, solo medible en el PC:** latencia y salida con `qwen3:14b`, contexto de 131072, atención *flash* y caché KV `q4_0` en la RTX 5060 Ti.
 - **Qué no cambió en las actualizaciones anteriores:** entre la 0.40.3 (17/10) y la 0.40.6 (18/10) el modelo (`qwen3:14b`, ID `8d6c98e1c8db`) y los ajustes del servidor (contexto, atención *flash*, caché KV) siguieron igual (`server-5.log` frente a `server.log`); no hay motivo para esperar otra cosa ahora, pero se anota con la versión nueva.
-- **Procedimiento recomendado:** medir primero con la versión instalada (0.40.6), actualizar, repetir la prueba de humo y comparar (apartado 9); si no hay regresión, **fijar la 0.40.11 hasta después de la entrega** (desactivar la actualización automática) y medir todo lo demás con ella. Si hay regresión, reinstalar la 0.40.6. Mientras no se decida, no reiniciar la app de Ollama durante una medición: al reiniciar se instalaría sola la 0.40.11.
+- **Resultado (25/10/2026).** Se actualizó a la 0.40.11 a las 19:15 sin haber medido antes el humo con la 0.40.6; el control es la tarea periódica que ya corría en el PC (dos llamadas fijas cada 10 minutos: 1.385 tokens de prompt y 659 generados con `qwen3:14b`, temperatura 0). Con la 0.40.6 (45 muestras, 11:41–19:01): generación mediana **41,8 tok/s** (39,0–42,2) y **16,6 s** por petición (16,4–17,8). Con la 0.40.11 (tres muestras limpias, 19:30, 19:40 y 19:50; se descarta la de las 19:20, el primer arranque tras actualizar): 41,1 · 38,0 · 40,8 tok/s (mediana **40,8**, un 2,3 % menos) y 16,2 · 17,5 · 16,3 s. Cabe en el margen del 10 % que se fijó (≥ 37,6 tok/s; ≤ 18,3 s). Es poca muestra y una (38,0) queda justo por debajo del mínimo de la 0.40.6.
+- **Prueba de humo con la 0.40.11** (stack de Soultech, `qwen3:14b`): 8 turnos con LLM, estado «terminada», primer turno 9,14 s (6,73 s de carga del modelo), mediana en caliente 1,57 s, máximo 1,87 s. **No es comparable con la del 12/10 (0,94 s):** el código y los prompts son otros y cada llamada genera de 51 a 70 tokens (a ~39 tok/s, 1,3–1,8 s solo de generación). El script de humo de Soultech no manda la clave del terapeuta y hay que pasarle `--student`; el de nf3 sí la manda.
+- **Decisión (25/10/2026): se queda la 0.40.11 y la actualización automática queda desactivada hasta después del 12/11.** Para cambiar de versión de nuevo, el procedimiento del apartado 9.
 
 ## 5. Herramientas con las que se ha verificado (no son dependencias)
 
@@ -134,7 +136,7 @@ Umbrales: F1-macro ≥ 0,75; recall y precisión de estancamiento ≥ 0,65. Las 
 | D-07 | Cifras del clasificador del 12/10/2026 medidas con scikit-learn 1.6.1 (apartado 6) | Documentada; la memoria cita las nuevas |
 | D-08 | Versiones de Ollama, `qwen3:14b`, Docker Desktop y controlador NVIDIA del PC de Álvaro sin anotar | Cerrada el 25/10/2026 (apartado 4) salvo dos datos irrecuperables del 12/10: la versión exacta de Ollama y la del controlador (hoy 617.42; el 09/10, 617.14) |
 | D-09 | `.env.example` nombra `TABBYAPI_MODEL=Qwen3.8-27B-EXL3-3.0bpw` (perfil opcional de TabbyAPI) | Declarado en el repositorio, no comprobado |
-| D-10 | La actualización automática de Ollama en el PC de Álvaro puede cambiar la versión en mitad de una medición (0.40.11 ya descargada) | Abierta: decidir antes de la medición si se actualiza y se fija (apartado 4) |
+| D-10 | La actualización automática de Ollama en el PC de Álvaro podía cambiar la versión en mitad de una medición (0.40.11 ya descargada) | **Cerrada el 25/10/2026**: se actualizó a la 0.40.11 (19:15), sin regresión de generación (apartado 4), y la actualización automática está desactivada (20:53) |
 
 ## 8. Dependencias indirectas: `src/constraints.txt`
 
@@ -160,11 +162,11 @@ Regenerar `src/constraints.txt` (solo si se decide cambiar versiones; ver aparta
 python3.12 -m venv /tmp/v && /tmp/v/bin/pip install -r requirements-dev.txt -r dashboard/requirements.txt && /tmp/v/bin/pip check && /tmp/v/bin/pip freeze
 ```
 
-Al actualizar Ollama en el PC (0.40.6 → 0.40.11), una sola vez y en este orden; las dos salidas se pegan en el informe de la medición:
+Al actualizar Ollama en el PC (hecho el 25/10/2026 con la 0.40.6 → 0.40.11; vale para cualquier versión futura), una sola vez y en este orden; las dos salidas se pegan en el informe de la medición:
 
 ```powershell
 ollama --version; scripts\test-local.ps1 -Humo      # 1. con la versión instalada (línea de base)
-# 2. actualizar Ollama (la app ya tiene descargada la 0.40.11) y volver a abrirla
+# 2. actualizar Ollama (cerrar la app y volver a abrirla si ya tiene el paquete descargado) y comprobar la versión
 ollama --version; scripts\test-local.ps1 -Humo      # 3. con la nueva; comparar mediana, máximo y primer turno
 ```
 
