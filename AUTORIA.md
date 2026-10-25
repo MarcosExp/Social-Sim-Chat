@@ -35,6 +35,12 @@ Software que se usa pero **no se redistribuye** en este repositorio (cada uno co
 
 ## Licencia
 
-**No hay licencia todavía.** Sin licencia, todos los derechos quedan reservados por sus autores y nadie más puede
-reutilizar el código. La decisión (permisiva tipo MIT/Apache-2.0, o de uso no comercial) debe tomarse entre Marcos y
-Álvaro antes de hacer público nada, y depende de si la entrega exige un repositorio público. No es asesoramiento legal.
+El código y la documentación propios de este repositorio se publican bajo la **PolyForm Noncommercial License 1.0.0**
+(<https://polyformproject.org/licenses/noncommercial/1.0.0>); el texto completo y el aviso de autoría están en
+[`LICENSE`](LICENSE). En resumen: se puede usar, estudiar y modificar para fines no comerciales (investigación,
+docencia, uso personal o de organizaciones sin ánimo de lucro); **el uso comercial no está permitido** sin permiso
+de los autores. Es una licencia de «código disponible», no una licencia de código abierto en el sentido de la OSI.
+
+Alcance: cubre lo escrito por Álvaro y por Marcos en este repositorio. No cubre el software de terceros de la sección
+anterior (cada uno conserva su licencia, y no se redistribuye aquí), ni los modelos de lenguaje que el usuario descargue.
+Los datos del corpus son sintéticos y se publican con el mismo régimen. No es asesoramiento legal.

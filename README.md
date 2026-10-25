@@ -4,8 +4,8 @@ Entrenador conversacional y *learning analytics* para menores con TEA / síndrom
 Módulo C088 · Curso de Especialización en IA y Big Data (iFP) · Grupo 12: Álvaro García Puche y Marcos Expósito Flox.
 
 > **Prototipo académico, sin validez clínica.** Los datos del clasificador son sintéticos; las sesiones «reales» son
-> conversaciones de prueba. Estado del repositorio: **privado, sin licencia** (todos los derechos reservados) hasta que
-> el equipo decida cómo publicarlo; ver [`AUTORIA.md`](AUTORIA.md).
+> conversaciones de prueba. Licencia: **PolyForm Noncommercial 1.0.0** (uso no comercial; ver [`LICENSE`](LICENSE)
+> y [`AUTORIA.md`](AUTORIA.md)).
 
 ## Qué hay aquí (implementado y probado)
 
