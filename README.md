@@ -73,7 +73,7 @@ docs/          ER v2 (anotado, contrastado con el esquema real), arquitectura v2
 scripts/       instalación y comprobación (setup-local.*, test-local.ps1, comprobar-stack.ps1)
 ```
 
-Stack: Python 3.11 · FastAPI · SQLAlchemy · PostgreSQL 16 · scikit-learn · Streamlit · Docker Compose · Ollama (LLM local).
+Stack: Python 3.12 · FastAPI · SQLAlchemy · PostgreSQL 16 · scikit-learn · Streamlit · Docker Compose · Ollama (LLM local).
 
 ## Decisiones de diseño relevantes
 
