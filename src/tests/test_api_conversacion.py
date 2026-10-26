@@ -210,11 +210,15 @@ def test_cada_turno_valorado_guarda_la_version_del_evaluador(cliente, alumno, fa
 
 def test_la_version_del_evaluador_cambia_con_el_prompt_el_criterio_o_el_schema(monkeypatch):
     from app import conversacion as cv
+    # Mide el evaluador LLM: no debe depender del LLM_PROVIDER del entorno (con `make up-simulado` el contenedor trae «simulado»,
+    # cuya versión es otra y no incluye el prompt; hallazgo de la auditoría del 25/10 al ejecutar `make test` en ese modo).
+    monkeypatch.setattr(settings, "llm_provider", "ollama")
     base = cv.evaluador_version()
     assert base == cv.evaluador_version()                                    # estable
     monkeypatch.setattr(cv, "PROMPT_EVALUADOR", cv.PROMPT_EVALUADOR + " Criterio nuevo.")
     cambiado_prompt = cv.evaluador_version()
     monkeypatch.undo()
+    monkeypatch.setattr(settings, "llm_provider", "ollama")                  # `undo` también deshace el parche de arriba
     monkeypatch.setattr(cv, "SCHEMA_EVALUACION", {**cv.SCHEMA_EVALUACION, "required": ["evaluacion"]})
     cambiado_schema = cv.evaluador_version()
     assert len({base, cambiado_prompt, cambiado_schema}) == 3

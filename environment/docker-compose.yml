@@ -48,8 +48,8 @@ services:
     environment:
       DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg2://social_sim:change_me_local_dev@db:5432/social_sim_chat}
       ENV: ${ENV:-development}
-      # Motor conversacional: "ollama" (por defecto, portable) o "tabbyapi"
-      # (tu stack externo). Ver environment/.env.example.
+      # Motor conversacional: "ollama" (por defecto, portable), "openai", "tabbyapi" (tu stack externo) o "simulado"
+      # (reglas, sin LLM ni GPU). Ver environment/.env.example.
       LLM_PROVIDER: ${LLM_PROVIDER:-ollama}
       # La variable de ENTRADA se llama OLLAMA_URL (no OLLAMA_HOST): Ollama usa OLLAMA_HOST=0.0.0.0 como variable de entorno de Windows y
       # docker compose da prioridad al entorno del shell sobre .env, lo que dejaba al backend con una URL sin http://.
@@ -69,6 +69,9 @@ services:
       LLM_COMPAT_MODEL: ${LLM_COMPAT_MODEL:-qwen3:14b}
       LLM_COMPAT_API_KEY: ${LLM_COMPAT_API_KEY:-}
       LLM_COMPAT_RESPONSE_FORMAT: ${LLM_COMPAT_RESPONSE_FORMAT:-true}
+      LLM_COMPAT_REASONING_EFFORT: ${LLM_COMPAT_REASONING_EFFORT-none}   # sin ":" a propósito: vacío = no enviar el campo
+      # Proveedor LLM_PROVIDER=simulado (reglas, sin LLM ni GPU). Por defecto sus conversaciones son de prueba (no crean sesión real).
+      SIMULADO_REGISTRA_SESIONES: ${SIMULADO_REGISTRA_SESIONES:-false}
       TABBYAPI_HOST: ${TABBYAPI_HOST:-http://host.docker.internal:5000}
       TABBYAPI_MODEL: ${TABBYAPI_MODEL:-Qwen3.8-27B-EXL3-3.0bpw}
       TABBYAPI_API_KEY: ${TABBYAPI_API_KEY:-}

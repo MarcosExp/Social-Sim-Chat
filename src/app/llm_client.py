@@ -115,6 +115,9 @@ class ChatResultado:
 # ----------------------------------------------------------------------------- diagnóstico
 async def diagnostico_llm(timeout: float = 3.0) -> dict:
     """Estado del proveedor para /health: {estado, detalle, modelo, modelo_disponible}."""
+    if settings.llm_simulado:
+        from app import simulado
+        return simulado.diagnostico()
     base = settings.llm_base_url.rstrip("/")
     modelo = settings.llm_model
     out = {"estado": "error", "detalle": "", "modelo": modelo, "modelo_disponible": None}
@@ -194,6 +197,8 @@ def _payload_openai(messages, formato, temperature, num_predict) -> dict:
     if isinstance(formato, dict) and settings.llm_provider == "openai" and settings.llm_compat_response_format:
         schema = {"additionalProperties": False, **formato}   # copia: SCHEMA_EVALUACION entra en la huella del evaluador
         p["response_format"] = {"type": "json_schema", "json_schema": {"name": "respuesta", "strict": True, "schema": schema}}
+    if settings.llm_provider == "openai" and settings.llm_compat_reasoning_effort:
+        p["reasoning_effort"] = settings.llm_compat_reasoning_effort
     return p
 
 
@@ -271,6 +276,10 @@ async def chat(messages: list[dict], *, formato: dict | str | None = None,
                 choices = data.get("choices") or []
                 if not choices:
                     raise RespuestaInvalida("El proveedor no devolvió ninguna respuesta (sin 'choices').")
+                if formato and choices[0].get("finish_reason") == "length":
+                    raise RespuestaInvalida(
+                        "La respuesta se cortó por max_tokens antes de completar el JSON. Si el modelo razona (qwen3), "
+                        "pon LLM_COMPAT_REASONING_EFFORT=none; si no, sube OLLAMA_NUM_PREDICT.")
                 u = data.get("usage") or {}
                 res = ChatResultado(
                     texto=_sin_razonamiento((choices[0].get("message") or {}).get("content") or ""),

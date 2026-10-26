@@ -27,7 +27,8 @@ from datetime import datetime, timezone
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app import guarda, llm_client, metricas
+from app import guarda, llm_client, metricas, simulado
+from app.config import settings
 from app.guiones import Guion, Guiones, cargar_guiones
 from app.models import Conversacion, ConversacionTurno, StudentProfileSim
 
@@ -148,7 +149,8 @@ def crear_conversacion(db: Session, student_id: str, competencia: str | None, al
     conv = Conversacion(
         conversacion_id=uuid.uuid4(), student_id=student_id, competencia=comp, personaje=g.personaje,
         alias=alias or student_id, estado="en_curso", nodo_actual="a1", intento=1,
-        guion_version=guiones.version, modelo=None, es_prueba=prueba)
+        guion_version=guiones.version, modelo=simulado.MODELO if settings.llm_simulado else None,
+        es_prueba=prueba or (settings.llm_simulado and not settings.simulado_registra_sesiones))
     db.add(conv)
     bot = TurnoBot("a1", "apertura", g.personaje, [guiones.apertura["a1"].format(nombre_usuario=conv.alias)])
     _agregar(conv, rol="bot", nodo="a1", tipo="apertura", intento=1, texto=bot.texto)
@@ -198,7 +200,10 @@ EVALUADOR_ETIQUETA = "2026-10-12-p3"   # p1 = estricto con analisis (91c9709); p
 
 def evaluador_version() -> str:
     """Identificador del evaluador: etiqueta legible + hash (8 hex) del prompt, el criterio, el schema, el envoltorio
-    del texto del niño, la temperatura y el nº de mensajes de historial. Se guarda en cada turno valorado."""
+    del texto del niño, la temperatura y el nº de mensajes de historial. Se guarda en cada turno valorado.
+    En modo simulado es el del valorador por reglas (`simulado-…`), nunca el del LLM."""
+    if settings.llm_simulado:
+        return simulado.version()
     base = "\x1f".join([PROMPT_EVALUADOR, PROMPT_RECIPROCAS, ENVOLTORIO, json.dumps(SCHEMA_EVALUACION, sort_keys=True, ensure_ascii=False),
                         str(TEMPERATURA_EVALUADOR), str(MAX_HISTORIAL), guarda.huella(), REACCION_GUARDA])
     return f"{EVALUADOR_ETIQUETA}+{hashlib.sha256(base.encode('utf-8')).hexdigest()[:8]}"
@@ -224,7 +229,9 @@ def _historial(conv: Conversacion, nodo: str, mensaje: str) -> list[dict]:
 
 
 async def evaluar_con_llm(conv: Conversacion, guiones: Guiones, g: Guion, turno, mensaje: str):
-    """(evaluacion, reaccion, ChatResultado). Un reintento si el JSON no es válido."""
+    """(evaluacion, reaccion, ChatResultado). Un reintento si el JSON no es válido. En modo simulado, por reglas y sin LLM."""
+    if settings.llm_simulado:
+        return simulado.valorar(turno, mensaje)
     messages = [{"role": "system", "content": _prompt_sistema(conv, guiones, g, turno)},
                 *_historial(conv, turno.id, mensaje)]
     ultimo: Exception | None = None
@@ -252,7 +259,7 @@ async def valorar(conv: Conversacion, guiones: Guiones, g: Guion, turno, mensaje
     if patrones:
         return 0, REACCION_GUARDA, None, "guarda_inyeccion", patrones
     evaluacion, reaccion, res = await evaluar_con_llm(conv, guiones, g, turno, mensaje)
-    return evaluacion, reaccion, res, "llm", []
+    return evaluacion, reaccion, res, "heuristica" if settings.llm_simulado else "llm", []
 
 
 # --------------------------------------------------------------------------- responder

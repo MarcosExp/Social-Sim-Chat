@@ -52,9 +52,12 @@ def main() -> int:
     ap.add_argument("--max-p50", type=float, default=10.0, help="umbral de mediana por turno con LLM (s)")
     ap.add_argument("--max-turno", type=float, default=60.0, help="umbral del peor turno (s), incluida carga en frío")
     ap.add_argument("--json", dest="salida", help="guarda el informe en este fichero")
+    ap.add_argument("--api-key", default=os.getenv("API_KEY_TERAPEUTA"),
+                    help="clave de la API del terapeuta (cabecera X-API-Key; por defecto, la variable API_KEY_TERAPEUTA)")
     a = ap.parse_args()
 
-    with httpx.Client(base_url=a.url, timeout=a.timeout) as c:
+    cabeceras = {"X-API-Key": a.api_key} if a.api_key else {}
+    with httpx.Client(base_url=a.url, timeout=a.timeout, headers=cabeceras) as c:
         try:
             h = c.get("/health", timeout=10).json()
         except httpx.HTTPError as exc:
@@ -65,7 +68,18 @@ def main() -> int:
             print("✗ El motor LLM no está listo; no tiene sentido medir. Arréglalo con el mensaje de arriba.")
             return 2
 
-        sid = a.student or c.get("/students").json()[0]["student_id"]
+        if not a.student:
+            r = c.get("/students")
+            if r.status_code in (401, 403):
+                print("✗ /students exige la clave del terapeuta: define API_KEY_TERAPEUTA o usa --api-key, o pasa --student.")
+                return 2
+            alumnos = r.json()
+            if not alumnos:
+                print("✗ No hay alumnos en la base de datos: carga el corpus con `make seed` o pasa --student.")
+                return 2
+            sid = alumnos[0]["student_id"]
+        else:
+            sid = a.student
         body = {"student_id": sid, "prueba": True, **({"competencia": a.competencia} if a.competencia else {})}
         r, _ = pedir(c, "POST", "/conversaciones", json=body)
         if r.status_code != 201:
@@ -92,7 +106,8 @@ def main() -> int:
             f = lambda k: f"{llm[k] / 1000:.2f}" if llm and llm.get(k) is not None else "-"  # noqa: E731
             print(f"{n:>2} {conv['nodo_actual']:<5} {str(conv.get('evaluacion') if llm else '-'):>4} {ms / 1000:>8.2f} "
                   f"{f('ollama_ms'):>9} {f('carga_ms'):>8} {f('espera_cola_ms'):>7} "
-                  f"{(llm or {}).get('prompt_tokens', '-'):>7}  {conv['turno_bot']['texto'][:60]!r}")
+                  f"{str((llm or {}).get('prompt_tokens') if (llm or {}).get('prompt_tokens') is not None else '-'):>7}  "
+                  f"{conv['turno_bot']['texto'][:60]!r}")   # el modo simulado no mide tokens: llega None
 
         con_llm = [x for x in filas if x["llm"]]
         sin_llm = [x for x in filas if not x["llm"]]
