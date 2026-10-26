@@ -61,12 +61,12 @@ dashboard:
 	@echo "http://localhost:$${DASHBOARD_PORT:-8501}"
 
 health:
-	curl -s http://localhost:$${BACKEND_PORT:-8010}/health | python3 -m json.tool
+	curl -s http://localhost:$${BACKEND_PORT:-8010}/health | $(COMPOSE) exec -T backend python -m json.tool
 
 # Comprobación rápida de las etapas (conteos en BD + modelo guardado).
 verify:
 	$(COMPOSE) exec db sh -c 'psql -U $$POSTGRES_USER -d $$POSTGRES_DB -c "SELECT (SELECT count(*) FROM student_profile_sim) alumnos, (SELECT count(*) FROM session_data) sesiones, (SELECT count(*) FROM classifier_predictions) predicciones;"'
-	@test -f src/models/metrics.json && python3 -c "import json;m=json.load(open('src/models/metrics.json'));print(m['modelo_version'],'F1-macro',m['f1_macro'],'cumple',m['cumple_umbrales'],'anti-fuga',m['anti_fuga']['superado'])" || echo "Sin modelo: make train"
+	@$(COMPOSE) exec -T backend python -m scripts.resumen_modelo
 
 # Borra volúmenes (BD, modelos Ollama) para empezar limpio.
 reset:

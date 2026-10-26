@@ -1,12 +1,20 @@
 """`make migrate` reaplica TODAS las migraciones sobre un volumen ya existente: deben ser idempotentes (001 -> 013 en orden),
 también con datos que solo la 013 permite (sesión sintética enlazada a una conversación)."""
+import os
 from pathlib import Path
 
-DIR = Path(__file__).resolve().parents[2] / "data" / "init-db"
+import pytest
+
+# Fuera del contenedor las migraciones están en <repo>/data/init-db; en el contenedor del backend (solo monta src/) las monta
+# el compose en MIGRACIONES_DIR.
+DIR = Path(os.getenv("MIGRACIONES_DIR") or Path(__file__).resolve().parents[2] / "data" / "init-db")
 
 
 def test_reaplicar_todas_las_migraciones_no_falla_ni_cambia_el_esquema(bd, alumno):
     from sqlalchemy import text
+
+    if not DIR.is_dir():
+        pytest.skip(f"no hay migraciones en {DIR} (define MIGRACIONES_DIR)")
 
     from tests.test_er_v2 import sintetica_con_turnos
 

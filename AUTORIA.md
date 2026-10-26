@@ -26,7 +26,7 @@ Origen: `MarcosExp/Social-Sim-Chat`, PR #2, copiado el 12/10/2026 (commit `5d85e
 
 ## Uso de inteligencia artificial
 Declarado según las instrucciones de entrega del módulo (el uso de IA está permitido y debe indicarse dónde y cómo):
-- **Claude (Anthropic), como asistente de programación** con Claude Code: escritura y revisión de código del backend, dashboard, migraciones, scripts y tests (Álvaro), depuración, refactorizaciones y generación de la documentación técnica (ADR, contratos de API, informes de validación, este repositorio). El autor ejecutó y verificó el resultado (tests y pruebas manuales en su entorno); la suite tiene 159 pruebas.
+- **Claude (Anthropic), como asistente de programación** con Claude Code: escritura y revisión de código del backend, dashboard, migraciones, scripts y tests (Álvaro), depuración, refactorizaciones y generación de la documentación técnica (ADR, contratos de API, informes de validación, este repositorio). El autor ejecutó y verificó el resultado (tests y pruebas manuales en su entorno); el número de pruebas de la suite está en el README.
 - **LLM local (Ollama, modelo `qwen3:14b`) como parte del producto**, no como herramienta de desarrollo: genera la variación de frase y la valoración 0/1/2 del turno del menor durante la conversación.
 - **Código de Marcos** (`src/generador/`, `src/ml/`): su uso de IA, si lo hubo, lo declara él en su parte de la memoria.
 
