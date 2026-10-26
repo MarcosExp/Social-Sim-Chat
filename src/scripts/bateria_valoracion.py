@@ -46,6 +46,8 @@ DATOS = Path(__file__).resolve().parent.parent / "tests" / "data"
 # Referencia 2026-10-12 con el prompt p3 + guarda (por pasada, 3 repeticiones): batería 1 → 1/75 falsos 2 y 13/13 buenas;
 # batería 2 → 1/71 y 24/27; batería 3 → 0-1/52 y 23/26. Los umbrales dejan margen por el ruido del modelo (temperatura 0,2).
 # Referencia 2026-10-25 (código de las seis PR, mismo modelo, 3 repeticiones, con historial): batería 3 → 0/52 y 23/26; batería 4 → 2/52 y 26/26.
+# Los umbrales y las referencias son de `qwen3:14b`: con otro modelo hay que remedirlos. El 26/10/2026, `openai` por TabbyAPI con Qwen3-Coder-30B-A3B
+# (EXL3 3,34 bpw) dio de media 6,3 falsos 2 por pasada en la batería 3 con historial (19/156) y 2,7 en la 4 (8/156), y el script salió con código 1.
 UMBRALES = {
     "1": {"max_falsos2": 3, "min_buenas": 12},
     "2": {"max_falsos2": 3, "min_buenas": 22},

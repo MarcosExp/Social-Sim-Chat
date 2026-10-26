@@ -45,11 +45,13 @@
 | LLM `qwen3:14b` + guarda (p3) | 1 | 39/39 | 3/225 (1,3 %) | ídem |
 | LLM `qwen3:14b` + guarda (p3) | 3 (examen) | 69/78 (88,5 %) | 0/156 con historial; 3/156 (1,9 %) sin él | 25/10/2026, 3 repeticiones, GPU de Álvaro, Ollama 0.40.11, código de las seis PR integradas |
 | LLM `qwen3:14b` + guarda (p3) | 4 (a ciegas del simulado) | 78/78 (100 %) | 6/156 (3,8 %) con historial; 8/156 (5,1 %) sin él | ídem; primera medida con el LLM real |
+| LLM `Qwen3-Coder-30B-A3B` (EXL3 3,34 bpw) + guarda (p3), `openai` por TabbyAPI | 3 (examen) | 75/78 (96,2 %) con historial; 73/78 (93,6 %) sin él | 19/156 (12,2 %) con historial; 16/156 (10,3 %) sin él | 26/10/2026, 3 repeticiones, GPU de Álvaro, código de las seis PR integradas; no cumple los umbrales del script |
+| LLM `Qwen3-Coder-30B-A3B` (EXL3 3,34 bpw) + guarda (p3), `openai` por TabbyAPI | 4 (a ciegas del simulado) | 78/78 (100 %) en las dos condiciones | 8/156 (5,1 %) con historial; 13/156 (8,3 %) sin él | ídem; no cumple los umbrales sin historial |
 | LLM falso (simulado) | 4 (a ciegas) | 21/26 (80,8 %) | 1/52 (1,9 %) | 25/10/2026, una pasada determinista |
 | LLM falso (simulado) | 3 (ya afinada) | 24/26 | 5/52 | desarrollo, no cuenta como examen |
 
 **Lo que NO está comprobado** (se declara en la memoria):
-- La batería 4 se midió con el LLM real el 25/10/2026 (filas de arriba). Las repeticiones casi no aportan información: fallan los mismos casos las tres veces, así que la muestra efectiva es de 26 buenas y 52 malas. Sigue sin medirse `LLM_PROVIDER=openai` con las baterías.
+- La batería 4 se midió con el LLM real el 25/10/2026 (filas de arriba). Las repeticiones casi no aportan información: fallan los mismos casos las tres veces, así que la muestra efectiva es de 26 buenas y 52 malas. `LLM_PROVIDER=openai` se midió con las baterías 3 y 4 solo con TabbyAPI y otro modelo (`Qwen3-Coder-30B-A3B`, filas de arriba, 26/10/2026): da más falsos 2 que `qwen3:14b` y la batería 3 no cumple los umbrales, así que el evaluador **solo está validado con `qwen3:14b`**. No se midió el mismo modelo por los dos servidores, ni con vLLM ni con LM Studio.
 - Las etiquetas de las baterías 3 y 4 las propuso una IA y **no las ha revisado ninguna persona**; hasta que alguien distinto de quien escribió las reglas las revise (hojas de revisión en `docs/`), los resultados son provisionales.
 - **No hay conversaciones reales anotadas** ni se ha medido el acuerdo con el terapeuta; las baterías son respuestas escritas, no habla de menores.
 - El sesgo conocido del LLM es hacia **infravalorar** (ante la duda, 0): baja PEPE y %DET de alumnos que sí aciertan.
