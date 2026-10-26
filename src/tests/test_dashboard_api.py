@@ -17,9 +17,11 @@ def test_el_dashboard_no_accede_a_la_base_de_datos():
                  if prohibido.search(l) and not l.lstrip().startswith("#")]
         assert not malos, f"{f.name} no debe acceder a datos fuera de la API: {malos}"
     assert "sqlalchemy" not in (DASH / "requirements.txt").read_text().lower()
-    compose = (DASH.parent.parent / "environment" / "docker-compose.yml").read_text(encoding="utf-8")
-    bloque = compose[compose.index("  dashboard:"):compose.index("volumes:\n  pgdata:")]
-    assert "DATABASE_URL" not in bloque and "BACKEND_URL" in bloque
+    compose = DASH.parent.parent / "environment" / "docker-compose.yml"
+    if compose.exists():                     # en el contenedor del backend (solo monta src/) no está
+        bloque = compose.read_text(encoding="utf-8")
+        bloque = bloque[bloque.index("  dashboard:"):bloque.index("volumes:\n  pgdata:")]
+        assert "DATABASE_URL" not in bloque and "BACKEND_URL" in bloque
 
 
 @pytest.fixture
