@@ -11,7 +11,7 @@
 | NF2 (PDF, apartado 8 «Datos», criterio cuantitativo del clasificador) | scikit-learn 1.9.1, numpy 2.5.3, pandas 3.0.5 («versiones fijadas en el `requirements.txt` del repositorio»); con scikit-learn 1.6.1 el recall de estancamiento baja a 0,650 | `MarcosExp/Social-Sim-Chat`, `docs/NF2_Documentacion_y_Diseno_Tecnico.pdf` |
 | `requirements.txt` del repo académico (Marcos, 13/10/2026, `9b9fbbb`) | numpy 2.5.3, pandas 3.0.5, pyyaml 6.0.3, scikit-learn 1.9.1 | raíz del repo académico |
 | `src/requirements*.txt` y `environment/` de nf3 | todo lo demás (FastAPI, SQLAlchemy, Streamlit, imágenes…) | este repositorio |
-| Llamada Álvaro–Marcos del 25/10/2026 (de palabra) | armonizar las cuatro versiones anteriores y pasar la imagen a Python 3.12 | PR n.º 5 |
+| Llamada Álvaro–Marcos del 25/10/2026 (de palabra; Marcos la confirmó por escrito ese día a las 22:31 y dio además su visto bueno a streamlit 1.56.0, a las imágenes con digest y a `constraints.txt`) | armonizar las cuatro versiones anteriores y pasar la imagen a Python 3.12 | PR n.º 5 |
 
 El NF2 nombra las tecnologías (FastAPI, Ollama, scikit-learn, Streamlit, Plotly, Docker Compose, PostgreSQL) pero **solo da versión de tres: scikit-learn, numpy y pandas**. pyyaml 6.0.3 solo consta en el `requirements.txt` del repo académico. El resto de versiones no tiene otro respaldo documental que este repositorio.
 
@@ -41,7 +41,7 @@ Las dependencias que no están en la tabla (47 paquetes indirectos: starlette, s
 
 **Python mínimo: 3.12** (lo impone numpy 2.5.3). Comprobado con 3.12.3 (local), 3.12.15 (imágenes Docker) y 3.13.16 (local): en los tres, los mismos tests y las mismas métricas del clasificador.
 
-**Por qué streamlit 1.56.0.** pandas 3.0.5 no resuelve con ninguna versión de streamlit anterior (la 1.41.1 que teníamos, la 1.50.0, la 1.54.0 y la 1.55.0 dan `ResolutionImpossible`); la 1.56.0 es la primera que lo admite (`pandas<4`). La última publicada hoy es la 1.66.1; no se sube para no cambiar más de lo necesario. **Comprobado el 25/10/2026 con la 1.56.0:** se recorrieron las seis pestañas del dashboard con un navegador automatizado (backend en modo simulado, modelo entrenado, dos conversaciones): sin excepciones y con las cifras del modelo a la vista (F1-macro 0,797 · recall 0,725 · precisión 0,70). El registro de Streamlit avisaba de que `use_container_width` desaparece («se eliminará después del 31/12/2025») y de una tabla de tipos mezclados que Arrow no admite; esta PR cambia los 12 usos a `width="stretch"` y convierte esa tabla a texto, y el registro queda sin avisos. Visto bueno de Álvaro el 25/10/2026; **falta la conformidad de Marcos** (en la llamada solo se acordaron las cuatro del NF2).
+**Por qué streamlit 1.56.0.** pandas 3.0.5 no resuelve con ninguna versión de streamlit anterior (la 1.41.1 que teníamos, la 1.50.0, la 1.54.0 y la 1.55.0 dan `ResolutionImpossible`); la 1.56.0 es la primera que lo admite (`pandas<4`). La última publicada hoy es la 1.66.1; no se sube para no cambiar más de lo necesario. **Comprobado el 25/10/2026 con la 1.56.0:** se recorrieron las seis pestañas del dashboard con un navegador automatizado (backend en modo simulado, modelo entrenado, dos conversaciones): sin excepciones y con las cifras del modelo a la vista (F1-macro 0,797 · recall 0,725 · precisión 0,70). El registro de Streamlit avisaba de que `use_container_width` desaparece («se eliminará después del 31/12/2025») y de una tabla de tipos mezclados que Arrow no admite; esta PR cambia los 12 usos a `width="stretch"` y convierte esa tabla a texto, y el registro queda sin avisos. Visto bueno de Álvaro el 25/10/2026 y de Marcos por escrito ese día (22:31); en la llamada solo se acordaron las cuatro del NF2.
 
 ## 3. Imágenes y servicios (`environment/`)
 
@@ -129,7 +129,7 @@ Umbrales: F1-macro ≥ 0,75; recall y precisión de estancamiento ≥ 0,65. Las 
 | Id | Divergencia | Estado |
 |---|---|---|
 | D-01 | nf3 (`main`, PR n.º 1–4) y las tres ramas de Soultech usan numpy 2.2.1, pandas 2.2.3, scikit-learn 1.6.1, pyyaml 6.0.2 y Python 3.11; el NF2 documenta las versiones del apartado 2 | nf3: se resuelve al fusionar la PR n.º 5. **Soultech: se deja como está hasta después de la entrega (decisión del 25/10/2026)**; al unificar, se copian `requirements*.txt` y `constraints.txt` de nf3 y se reentrena (el modelo guardado no sirve entre versiones de scikit-learn) |
-| D-02 | streamlit 1.41.1 → 1.56.0: no figura en el NF2; es consecuencia de pandas 3 | Visto bueno de Álvaro el 25/10/2026; falta la conformidad de Marcos (revisión de la PR n.º 5) |
+| D-02 | streamlit 1.41.1 → 1.56.0: no figura en el NF2; es consecuencia de pandas 3 | **Cerrada el 25/10/2026**: visto bueno de Álvaro y confirmación por escrito de Marcos (22:31) |
 | D-03 | README del repo académico: «Python 3.11 o superior; probado con 3.13», pero numpy 2.5.3 exige 3.12 | Abierta (repo de Marcos) |
 | D-04 | README del repo académico cita `environment/requirements.txt`; el fichero está en la raíz (`environment/` solo tiene `.gitkeep`) | Abierta (repo de Marcos) |
 | D-05 | El NF2 promete «Docker Compose con versiones fijadas», pero `ollama/ollama:latest` no estaba fijada y `postgres:16-alpine` y `python:3.12-slim` fijaban solo la versión mayor | **Cerrada el 25/10/2026**: etiqueta exacta y digest en las tres imágenes (apartado 3) |
