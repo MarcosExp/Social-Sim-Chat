@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 generador_corpus_sintetico.py — SOCIAL-SIM Chat
 
