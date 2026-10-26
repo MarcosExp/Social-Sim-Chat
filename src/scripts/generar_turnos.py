@@ -1,4 +1,4 @@
-"""Turnos sintéticos coherentes con las métricas de cada sesión del corpus (BORRADOR para acordar el contrato).
+"""Turnos sintéticos coherentes con las métricas de cada sesión del corpus (contrato: ADR-001, addendum 013).
 
 Qué hace (NF2, secciones 7 y 8): para cada sesión sintética del generador de Marcos crea una conversación terminada
 y sus turnos, con la misma forma que guarda el chat real (`conversacion` + `conversacion_turno`, una fila por intento).
@@ -19,13 +19,18 @@ con 2 cuenta como iniciativa, así que el IRC recalculado no puede bajar de ese 
 sesiones) no se reproduce, solo el % de intentos con 2 (`pct_DET_observado_en_turnos`). El texto de los turnos es de
 relleno: sirve para contar palabras, no para leerlo como una respuesta real.
 
-Uso (sin base de datos; escribe CSV y una comprobación turno -> métricas):
+En la base de datos (migración 013): cada conversación va con `origen='sintetico'` y `es_prueba=true` (así las métricas
+reales, los listados y el dashboard no la ven), los turnos del menor con `evaluacion_origen='sintetico'`, y cada sesión
+sintética se enlaza con su conversación por `session_id` (el mismo uuid5 que `seed_corpus`). `session_data` no se recalcula
+desde los turnos. Lo hace `seed_corpus.py` al final de la carga (`--sin-turnos` para saltarlo), llamando a `sembrar`.
+
+Uso sin base de datos (escribe CSV y una comprobación turno -> métricas):
     python -m scripts.generar_turnos --out-dir data/turnos_sinteticos
 """
 from __future__ import annotations
 
 import argparse
-import itertools
+import math
 import uuid
 from pathlib import Path
 from types import SimpleNamespace
@@ -39,7 +44,7 @@ from app.guiones import Guion, Guiones, cargar_guiones
 SRC = Path(__file__).resolve().parent.parent
 NS = uuid.UUID("5d85eb0c-0000-4000-8000-50c1a15101c0")      # el mismo espacio que seed_corpus: mismos session_id
 VERSION = "generar_turnos-0.1"
-ORIGEN_EVALUACION = "sintetico"   # OJO: hoy el CHECK de conversacion_turno.evaluacion_origen no lo admite (contrato)
+ORIGEN_EVALUACION = "sintetico"   # admitido por el CHECK de conversacion_turno.evaluacion_origen desde la migración 013
 P_PARCIAL = 0.4                   # prob. de que un intento fallido sea «parcial» (1) en vez de 0
 RELLENO = ["pues", "creo", "que", "es", "eso", "a", "lo", "mejor", "porque", "sí"]
 FALLOS = ["no sé", "vale", "explota", "que se cae", "nada"]
@@ -192,7 +197,7 @@ def generar(train: pd.DataFrame, meta: pd.DataFrame, seed: int, guiones: Guiones
         convs.append(dict(conversacion_id=cid, session_id=str(uuid.uuid5(NS, f"{a}-{s}")), student_id=a, sesion_num=s,
                           competencia=g.competencia, personaje=g.personaje, alias=a, estado="terminada",
                           nodo_actual="fin", intento=1, guion_version=guiones.version, modelo=None,
-                          es_prueba=False, origen="sintetico"))
+                          es_prueba=True, origen="sintetico"))   # 013: sintética => de prueba (CHECK)
     cols = ["conversacion_id", "orden", "rol", "nodo", "tipo", "intento", "texto", "evaluacion", "evaluacion_origen",
             "rama", "latencia_ms", "evaluador_version", "iniciativa", "accuracy_corregido", "ayudas_solicitadas"]
     return pd.DataFrame(convs), pd.DataFrame(turnos)[cols]
@@ -212,6 +217,74 @@ def comprobar(train: pd.DataFrame, conversaciones: pd.DataFrame, turnos: pd.Data
                           dif_aMLU=None if m.aMLU is None else m.aMLU - s.aMLU, dif_IRC=m.IRC_pct - s.IRC_pct,
                           pct_DET_sesion=s.pct_DET, pct_DET_observado_en_turnos=m.pct_DET_observado_en_turnos))
     return pd.DataFrame(filas)
+
+
+# --------------------------------------------------------------------------- base de datos (migración 013)
+_SQL_CONV = """
+    INSERT INTO conversacion (conversacion_id, student_id, competencia, personaje, alias, estado, nodo_actual, intento,
+                              guion_version, modelo, es_prueba, origen)
+    VALUES (CAST(:conversacion_id AS UUID), :student_id, :competencia, :personaje, :alias, :estado, :nodo_actual, :intento,
+            :guion_version, :modelo, :es_prueba, :origen)
+    ON CONFLICT (conversacion_id) DO NOTHING"""
+_SQL_TURNO = """
+    INSERT INTO conversacion_turno (conversacion_id, orden, rol, nodo, tipo, intento, texto, evaluacion, evaluacion_origen,
+                                    rama, latencia_ms, evaluador_version, iniciativa, accuracy_corregido, ayudas_solicitadas)
+    VALUES (CAST(:conversacion_id AS UUID), :orden, :rol, :nodo, :tipo, :intento, :texto, :evaluacion, :evaluacion_origen,
+            :rama, :latencia_ms, :evaluador_version, :iniciativa, :accuracy_corregido, :ayudas_solicitadas)
+    ON CONFLICT (conversacion_id, orden) DO NOTHING"""
+_SQL_ENLACE = """
+    UPDATE session_data SET conversacion_id = CAST(:conversacion_id AS UUID)
+    WHERE session_id = CAST(:session_id AS UUID) AND origen = 'sintetico' AND conversacion_id IS NULL"""
+
+
+def _py(v):
+    """Valor de pandas/numpy -> tipo de Python para el driver (NaN -> None; 2.0 -> 2 en las columnas enteras)."""
+    if v is None:
+        return None
+    if isinstance(v, np.generic):
+        v = v.item()
+    if isinstance(v, float):
+        if math.isnan(v):
+            return None
+        if v.is_integer():
+            return int(v)
+    return v
+
+
+def _filas(df: pd.DataFrame) -> list[dict]:
+    return [{k: _py(v) for k, v in r.items()} for r in df.to_dict("records")]
+
+
+def insertar(db, conversaciones: pd.DataFrame, turnos: pd.DataFrame) -> tuple[int, int, int]:
+    """Inserta conversaciones y turnos y enlaza cada sesión sintética con su conversación por `session_id`.
+
+    `db` es una sesión o conexión de SQLAlchemy; no hace commit (lo hace quien llama). Idempotente: lo que ya existe no se
+    duplica ni se reenlaza. Devuelve (conversaciones, filas de turno, sesiones enlazadas) de este corpus en la BD."""
+    from sqlalchemy import text
+
+    convs = _filas(conversaciones)
+    if not convs:
+        return 0, 0, 0
+    db.execute(text(_SQL_CONV), [{k: c[k] for k in c if k not in ("session_id", "sesion_num")} for c in convs])
+    db.execute(text(_SQL_TURNO), _filas(turnos))
+    db.execute(text(_SQL_ENLACE), [{"conversacion_id": c["conversacion_id"], "session_id": c["session_id"]} for c in convs])
+    ids = [c["conversacion_id"] for c in convs]
+    n = db.execute(text(
+        "SELECT (SELECT count(*) FROM conversacion WHERE conversacion_id = ANY(CAST(:ids AS UUID[]))),"
+        "       (SELECT count(*) FROM conversacion_turno WHERE conversacion_id = ANY(CAST(:ids AS UUID[]))),"
+        "       (SELECT count(*) FROM session_data WHERE conversacion_id = ANY(CAST(:ids AS UUID[])))"), {"ids": ids}).one()
+    return int(n[0]), int(n[1]), int(n[2])
+
+
+def sembrar(db, seed: int | None = None) -> tuple[int, int, int]:
+    """Genera los turnos del corpus de Marcos (misma semilla que `seed_corpus`) y los carga con `insertar`."""
+    from generador.generador_corpus_sintetico import cargar_config, generar_corpus
+
+    cfg = cargar_config(SRC / "generador" / "config.yaml")
+    seed = cfg["seed"] if seed is None else seed
+    train, meta = generar_corpus(cfg, seed)
+    conversaciones, turnos = generar(train, meta, seed)
+    return insertar(db, conversaciones, turnos)
 
 
 def main() -> None:

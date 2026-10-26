@@ -6,6 +6,7 @@ Uso (dentro del contenedor backend o con DATABASE_URL apuntando a localhost):
 
     python -m scripts.seed_corpus --reset                 # corpus corregido de Marcos (por defecto)
     python -m scripts.seed_corpus --generador heredado    # generador anterior (filtra la etiqueta)
+    python -m scripts.seed_corpus --reset --sin-turnos    # sin las conversaciones y turnos sintéticos (generar_turnos.py)
 
 También puedes ejecutarlo contra el contenedor en marcha:
 
@@ -77,7 +78,7 @@ def corpus_heredado(n_por_arquetipo: int, seed: int):
     return generar_corpus(n_por_arquetipo, seed)
 
 
-def seed(generador: str, n_por_arquetipo: int, seed: int | None, reset: bool) -> None:
+def seed(generador: str, n_por_arquetipo: int, seed: int | None, reset: bool, turnos: bool = True) -> None:
     if generador == "marcos":
         df_perfiles, df_sesiones = corpus_marcos(seed)
     else:
@@ -131,11 +132,20 @@ def seed(generador: str, n_por_arquetipo: int, seed: int | None, reset: bool) ->
                 data,
             )
 
+        resumen_turnos = None
+        if turnos and generador == "marcos":   # conversaciones + turnos de cada sesión (migración 013), en la misma transacción
+            from scripts import generar_turnos
+            resumen_turnos = generar_turnos.sembrar(db, seed)
         db.commit()
     finally:
         db.close()
 
     print(f"Cargados {len(df_perfiles)} alumnos simulados y {len(df_sesiones)} sesiones en la base de datos.")
+    if resumen_turnos:
+        n_conv, n_turnos, n_enlazadas = resumen_turnos
+        print(f"Turnos sintéticos: {n_conv} conversaciones, {n_turnos} filas de turno, {n_enlazadas} sesiones enlazadas.")
+    elif turnos and generador != "marcos":
+        print("Aviso: generar_turnos.py solo trabaja con el generador de Marcos; el heredado se carga sin turnos.")
 
 
 def main() -> None:
@@ -144,9 +154,11 @@ def main() -> None:
     parser.add_argument("--seed", type=int, default=None, help="por defecto, la de config.yaml (marcos) o 42 (heredado)")
     parser.add_argument("--n-por-arquetipo", type=int, default=25, help="solo generador heredado")
     parser.add_argument("--reset", action="store_true", help="vacía las tablas antes de cargar")
+    parser.add_argument("--sin-turnos", action="store_true",
+                        help="no crea las conversaciones y turnos sintéticos de cada sesión (generar_turnos.py)")
     args = parser.parse_args()
     print(f"Generador: {args.generador}")
-    seed(args.generador, args.n_por_arquetipo, args.seed, args.reset)
+    seed(args.generador, args.n_por_arquetipo, args.seed, args.reset, turnos=not args.sin_turnos)
 
 
 if __name__ == "__main__":
