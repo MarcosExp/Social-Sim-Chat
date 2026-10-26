@@ -45,11 +45,12 @@ DATOS = Path(__file__).resolve().parent.parent / "tests" / "data"
 # Umbrales de regresión (miden que el prompt NO EMPEORA; los objetivos de calidad están en el informe de validación §10).
 # Referencia 2026-10-12 con el prompt p3 + guarda (por pasada, 3 repeticiones): batería 1 → 1/75 falsos 2 y 13/13 buenas;
 # batería 2 → 1/71 y 24/27; batería 3 → 0-1/52 y 23/26. Los umbrales dejan margen por el ruido del modelo (temperatura 0,2).
+# Referencia 2026-10-25 (código de las seis PR, mismo modelo, 3 repeticiones, con historial): batería 3 → 0/52 y 23/26; batería 4 → 2/52 y 26/26.
 UMBRALES = {
     "1": {"max_falsos2": 3, "min_buenas": 12},
     "2": {"max_falsos2": 3, "min_buenas": 22},
     "3": {"max_falsos2": 3, "min_buenas": 21},
-    "4": {"max_falsos2": 3, "min_buenas": 21},       # provisional: aún no medida con el LLM real (ver docs/modo-simulado.md)
+    "4": {"max_falsos2": 3, "min_buenas": 21},       # medida con el LLM real el 25/10/2026 (2-3 falsos 2 y 26 buenas por pasada): cabe, se deja igual
 }
 # Con `LLM_PROVIDER=simulado` (LLM falso por reglas, docs/modo-simulado.md) se aplican ESTOS, no los del LLM: son los resultados de
 # hoy (también de NO EMPEORAR, no objetivos). La batería 3 queda por encima de los umbrales del LLM (5 falsos 2 > 3) y eso no

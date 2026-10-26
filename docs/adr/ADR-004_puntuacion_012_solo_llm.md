@@ -43,17 +43,19 @@
 | LLM `qwen3:14b` + guarda (p3) | 3 (examen) | 69/78 (88,5 %) | 1/156 (0,6 %) | 12/10/2026, 3 repeticiones, GPU de Álvaro |
 | LLM `qwen3:14b` + guarda (p3) | 2 | 88,9 % | 1,4 % | ídem |
 | LLM `qwen3:14b` + guarda (p3) | 1 | 39/39 | 3/225 (1,3 %) | ídem |
+| LLM `qwen3:14b` + guarda (p3) | 3 (examen) | 69/78 (88,5 %) | 0/156 con historial; 3/156 (1,9 %) sin él | 25/10/2026, 3 repeticiones, GPU de Álvaro, Ollama 0.40.11, código de las seis PR integradas |
+| LLM `qwen3:14b` + guarda (p3) | 4 (a ciegas del simulado) | 78/78 (100 %) | 6/156 (3,8 %) con historial; 8/156 (5,1 %) sin él | ídem; primera medida con el LLM real |
 | LLM falso (simulado) | 4 (a ciegas) | 21/26 (80,8 %) | 1/52 (1,9 %) | 25/10/2026, una pasada determinista |
 | LLM falso (simulado) | 3 (ya afinada) | 24/26 | 5/52 | desarrollo, no cuenta como examen |
 
 **Lo que NO está comprobado** (se declara en la memoria):
-- La batería 4 **no se ha medido con el LLM real**; hace falta el PC con GPU (`LLM_PROVIDER=ollama`, `python -m scripts.bateria_valoracion --bateria 4 --repeticiones 3`).
+- La batería 4 se midió con el LLM real el 25/10/2026 (filas de arriba). Las repeticiones casi no aportan información: fallan los mismos casos las tres veces, así que la muestra efectiva es de 26 buenas y 52 malas. Sigue sin medirse `LLM_PROVIDER=openai` con las baterías.
 - Las etiquetas de las baterías 3 y 4 las propuso una IA y **no las ha revisado ninguna persona**; hasta que alguien distinto de quien escribió las reglas las revise (hojas de revisión en `docs/`), los resultados son provisionales.
 - **No hay conversaciones reales anotadas** ni se ha medido el acuerdo con el terapeuta; las baterías son respuestas escritas, no habla de menores.
 - El sesgo conocido del LLM es hacia **infravalorar** (ante la duda, 0): baja PEPE y %DET de alumnos que sí aciertan.
 
 ## Consecuencias
 - La memoria cita las cifras del LLM real; las del modo simulado se citan siempre como «LLM falso, no el evaluador».
-- Cambiar el prompt o el criterio cambia `evaluador_version` y obliga a repetir las baterías 2 y 3 (y la 4 cuando exista su medida con el LLM).
+- Cambiar el prompt o el criterio cambia `evaluador_version` y obliga a repetir las baterías 2, 3 y 4.
 - Para medir de nuevo el modo simulado hay que escribir una batería nueva (la 5) sin mirar sus reglas; no se afina con la 4.
 - Si la revisión humana cambia etiquetas, se anotan las cifras antes y después; no se tocan las reglas para que suban.
