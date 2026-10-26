@@ -46,3 +46,20 @@ Se mantiene **una sola tabla** `session_data`, con `origen IN ('sintetico','real
 
 ## Addendum (23/10/2026) — se elimina `session_data.turnos`
 Migración **012** (`012_quitar_turnos_jsonb.sql`): se quita la columna `turnos`, a petición de Marcos al revisar el ER v2. Los turnos viven solo en `conversacion_turno` (y en la vista `turn_data`, ADR-002). La migración **aborta** si alguna fila tiene datos en `turnos` (p. ej. un corpus cargado con el generador heredado), en lugar de borrarlos. El ER vigente es [`er_v2.mmd`](../er_v2.mmd) (sin `turnos`, contrastado columna a columna con el esquema real; solo omite las columnas de auditoría `created_at`/`updated_at`). Los recuentos de pruebas de este documento son los de su fecha; el recuento vigente está en el README.
+
+## Addendum (23/10/2026) — turnos sintéticos: opción A (migración 013)
+**Decide:** Álvaro (dueño del esquema) · **Revisa:** Marcos, autor de `generar_turnos.py` (borrador en la rama `feature/generar-turnos`).
+
+La regla «`origen='real'` ⇔ `conversacion_id` no nulo» impedía que una sesión sintética tuviera turnos: `turn_data` (ADR-002) es una vista sobre `conversacion_turno` y solo veía conversaciones reales (0 filas con el corpus sembrado). Se relaja a **«real exige `conversacion_id`; sintético puede tenerlo»** (`CHECK (origen <> 'real' OR conversacion_id IS NOT NULL)`). El generador de turnos crea una `conversacion` terminada y sus `conversacion_turno` por cada sesión sintética y enlaza la sesión.
+
+| Riesgo | Cómo se controla |
+|---|---|
+| Una conversación sintética se contaría como real | `conversacion.origen` (`real` por defecto, `sintetico`) con `CHECK (origen = 'real' OR es_prueba)`: toda conversación sintética es de prueba, y las métricas reales (`metricas_reales`), los listados y el dashboard ya excluyen `es_prueba` |
+| Una sesión enlazada a una conversación de otro origen | Disparador `session_data_mismo_origen`: sintética solo con conversación sintética, real solo con real (en inserción y en reenlace) |
+| Fuga al entrenamiento | Sin cambios: `train_classifier` filtra `origen='sintetico'`, que ahora puede tener conversación; las reales siguen fuera (test) |
+| La valoración sintética parece del evaluador | `conversacion_turno.evaluacion_origen` admite `'sintetico'` (valoración fijada por diseño, no medida) |
+| Reaplicar migraciones (`make migrate`) | La 007 y la 008 solo crean sus restricciones si faltan o no admiten lo que amplía la 013; hay un test que reaplica todas con datos sintéticos enlazados |
+
+Alternativa descartada (B): tabla aparte de turnos sintéticos; duplicaría la vista y el código. Es reversible con una migración pequeña.
+
+**Contrato de `generar_turnos.py`:** (1) `conversacion` con `origen='sintetico'`, `es_prueba=true`, `estado='terminada'`; (2) `conversacion_turno` (`orden` correlativo, `rol` `bot`/`menor`, `tipo` `apertura`/`competencia`/`cierre`, `intento` 1 o 2, `evaluacion` 0/1/2 solo en el menor en competencia, `evaluacion_origen='sintetico'`); (3) `session_data.conversacion_id` de la sesión correspondiente. Los turnos se derivan de las métricas de la sesión (`session_data` no se recalcula desde ellos) y el propio generador mide la diferencia recalculando con `app/metricas.py::calcular`; el texto del menor es de relleno (sirve para contar palabras). Esas diferencias y límites se declaran en la memoria.

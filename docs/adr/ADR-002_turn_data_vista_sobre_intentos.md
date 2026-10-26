@@ -35,7 +35,7 @@ La apertura aparece en la vista, pero sin puntuación (no se evalúa). `hubo_res
 - (+) Cero cambios en datos o en el cálculo de métricas; la vista es de solo lectura y la migración, idempotente.
 - (+) El ER entregado y la BD vuelven a coincidir en el nombre y la forma de `turn_data`.
 - (−) **IRC % no es intercambiable con la `iniciativa` de la vista**: IRC se calcula sobre intentos (`n_turnos_menor`), la vista agrega por figura.
-- (−) **La vista solo cubre conversaciones reales.** El generador sintético no produce turnos (la columna `session_data.turnos`, vacía en las 1500 sesiones, se eliminó en la migración 012) y el `generar_turnos.py` mencionado en NF2 no está en el repositorio. Pendiente de aclarar con Marcos (decisión 4 / reunión).
+- (−) **Hoy la vista solo tiene filas de conversaciones reales.** El generador sintético no produce turnos (la columna `session_data.turnos`, vacía en las 1500 sesiones, se eliminó en la migración 012) y el `generar_turnos.py` mencionado en NF2 no está en el repositorio. Desde la migración 013 (ADR-001, addendum del 23/10/2026) una sesión sintética puede tener conversación (`conversacion.origen = 'sintetico'`, siempre `es_prueba`), así que la vista cubrirá también los turnos sintéticos cuando el generador los cree; pendiente de que Marcos lo entregue.
 - (−) La vista incluye conversaciones de prueba o abiertas (`es_prueba`, `session_id` NULL); hay que filtrar en el análisis.
 
 ## Verificación
@@ -46,4 +46,4 @@ La apertura aparece en la vista, pero sin puntuación (no se evalúa). `hubo_res
 - **`evaluacion` (por intento) ≠ `accuracy_score` (por figura).** El guion da ayuda tras un 0 **o un 1** del primer intento, así que `evaluacion = 1` significa «parcial», mientras que `accuracy_score = 1` del ER significa «correcta tras la ayuda». La vista calcula `accuracy_score` con la regla 2 (primer intento 2) / 1 (segundo intento 2) / 0 (resto), la misma que `metricas.puntuar_figuras`.
 - **`ayudas_solicitadas`** cuenta las ayudas **ofrecidas por el guion** (intentos > 1), no pedidas por el menor.
 - **`hubo_respuesta`** (campo del ER) se añade a la vista como constante `TRUE`: el sistema no guarda turnos sin respuesta del menor. Es un límite conocido, no una medida. `es_prueba` también se expone para poder filtrar.
-- La vista cubre **solo conversaciones reales**. Los turnos sintéticos no existen (`generar_turnos.py`, citado en NF2, no está en los repositorios): pendiente con Marcos.
+- La vista cubre las conversaciones que existan; hoy solo las reales. Los turnos sintéticos no existen todavía (`generar_turnos.py`, citado en NF2, no está en los repositorios): pendiente con Marcos. Con la 013 irán en conversaciones con `origen = 'sintetico'` y `es_prueba = true`.

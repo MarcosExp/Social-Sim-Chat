@@ -83,6 +83,104 @@ def test_el_entrenamiento_no_lee_sesiones_reales(cliente, alumno, fake, bd):
     assert alumno not in set(ses["alumno_id"])
 
 
+# --- migración 013 (opción A): una sesión sintética puede tener conversación y turnos -----------------------------------
+
+def sintetica_con_turnos(bd, alumno, origen_conv="sintetico", es_prueba=True, sesion_num=1):
+    """Lo que hace el generador de turnos: conversación sintética + turnos del menor + sesión sintética enlazada. Devuelve
+    el conversacion_id y el session_id. Figuras: M1 = 0 y luego 2 tras la ayuda (=1); M2 = 2 a la primera (=2)."""
+    import uuid
+    cid, sid = str(uuid.uuid4()), str(uuid.uuid4())
+    with bd.begin() as c:
+        c.execute(text(
+            "INSERT INTO conversacion (conversacion_id, student_id, competencia, personaje, alias, estado, nodo_actual, "
+            "guion_version, es_prueba, origen) VALUES (CAST(:c AS UUID), :a, 'Metáfora', 'p', 'al', 'terminada', 'M2', 'g', :t, :o)"),
+            {"c": cid, "a": alumno, "t": es_prueba, "o": origen_conv})
+        for orden, (nodo, intento, ev) in enumerate([("M1", 1, 0), ("M1", 2, 2), ("M2", 1, 2)], start=1):
+            c.execute(text(
+                "INSERT INTO conversacion_turno (conversacion_id, orden, rol, nodo, tipo, intento, texto, evaluacion, evaluacion_origen) "
+                "VALUES (CAST(:c AS UUID), :o, 'menor', :n, 'competencia', :i, 'texto sintetico', :e, 'sintetico')"),
+                {"c": cid, "o": orden, "n": nodo, "i": intento, "e": ev})
+        c.execute(text(
+            "INSERT INTO session_data (session_id, student_id, sesion_num, competencia, origen, conversacion_id, amlu, "
+            "latencia_pragmatica_ms, irc_pct, pepe, pct_det, etiqueta_real_disenada) "
+            "VALUES (CAST(:s AS UUID), :a, :n, 'Metáfora', 'sintetico', CAST(:c AS UUID), 3, 4000, 20, 1.5, 50, 'progreso')"),
+            {"s": sid, "a": alumno, "n": sesion_num, "c": cid})
+    return cid, sid
+
+
+def test_sesion_sintetica_con_conversacion_es_valida_y_turn_data_la_cubre(bd, alumno):
+    cid, sid = sintetica_con_turnos(bd, alumno)
+    filas = _vista(bd, cid)
+    assert [f["figura"] for f in filas] == ["M1", "M2"] and [f["accuracy_score"] for f in filas] == [1, 2]
+    assert all(str(f["session_id"]) == sid and f["es_prueba"] is True for f in filas)
+    with bd.connect() as c:
+        origenes = c.execute(text(
+            "SELECT s.origen, c.origen FROM session_data s JOIN conversacion c USING (conversacion_id) WHERE s.session_id = CAST(:s AS UUID)"),
+            {"s": sid}).one()
+    assert tuple(origenes) == ("sintetico", "sintetico")
+
+
+def test_real_sigue_exigiendo_conversacion_y_sintetica_sigue_exigiendo_etiqueta(bd, alumno):
+    import sqlalchemy.exc as sx
+    sintetica_con_turnos(bd, alumno)                              # no relaja nada más de lo previsto
+    with pytest.raises(sx.IntegrityError):
+        with bd.begin() as c:
+            c.execute(text("INSERT INTO session_data (session_id, student_id, sesion_num, competencia, origen) "
+                           "VALUES (gen_random_uuid(), :a, 7, 'Metáfora', 'real')"), {"a": alumno})
+    with pytest.raises(sx.IntegrityError):
+        with bd.begin() as c:
+            c.execute(text("UPDATE session_data SET etiqueta_real_disenada = NULL WHERE student_id = :a"), {"a": alumno})
+
+
+def test_una_conversacion_sintetica_es_siempre_de_prueba(bd, alumno):
+    """Si no lo fuera, `metricas_reales` y los listados la tratarían como una conversación real."""
+    import sqlalchemy.exc as sx
+    with pytest.raises(sx.IntegrityError, match="conversacion_sintetica_es_prueba_check"):
+        sintetica_con_turnos(bd, alumno, origen_conv="sintetico", es_prueba=False)
+    with pytest.raises(sx.IntegrityError, match="conversacion_origen_check"):
+        sintetica_con_turnos(bd, alumno, origen_conv="otro")
+
+
+def test_la_sesion_solo_enlaza_conversaciones_de_su_origen(bd, alumno):
+    import sqlalchemy.exc as sx
+    with pytest.raises(sx.IntegrityError, match="otro origen"):                 # sintética -> conversación real
+        sintetica_con_turnos(bd, alumno, origen_conv="real", es_prueba=True)
+    cid, sid = sintetica_con_turnos(bd, alumno)
+    with bd.begin() as c:
+        otra = c.execute(text(
+            "INSERT INTO conversacion (conversacion_id, student_id, competencia, personaje, alias, nodo_actual, guion_version) "
+            "VALUES (gen_random_uuid(), :a, 'Metáfora', 'p', 'al', 'M1', 'g') RETURNING conversacion_id"), {"a": alumno}).scalar()
+    with pytest.raises(sx.IntegrityError, match="otro origen"):                 # y tampoco se puede reenlazar después
+        with bd.begin() as c:
+            c.execute(text("UPDATE session_data SET conversacion_id = :o WHERE session_id = CAST(:s AS UUID)"), {"o": otra, "s": sid})
+    with pytest.raises(sx.IntegrityError, match="otro origen"):                 # real -> conversación sintética
+        with bd.begin() as c:
+            c.execute(text("INSERT INTO session_data (session_id, student_id, sesion_num, competencia, origen, conversacion_id) "
+                           "VALUES (gen_random_uuid(), :a, 8, 'Metáfora', 'real', CAST(:c AS UUID))"), {"a": alumno, "c": cid})
+
+
+def test_conversaciones_sinteticas_no_entran_en_las_metricas_ni_los_listados_reales(cliente, alumno, bd):
+    from scripts import metricas_reales
+    cid, sid = sintetica_con_turnos(bd, alumno)
+    metricas_reales.sincronizar(recalcular=True)
+    with bd.connect() as c:
+        origenes = [r[0] for r in c.execute(text("SELECT origen FROM session_data WHERE student_id = :a"), {"a": alumno})]
+    assert origenes == ["sintetico"]                              # no se creó ni se tocó ninguna sesión real
+    ids = {x["conversacion_id"] for x in cliente.get("/conversaciones").json()}
+    assert cid not in ids
+    assert cid in {x["conversacion_id"] for x in cliente.get("/conversaciones", params={"incluir_pruebas": True}).json()}
+
+
+def test_el_entrenamiento_sigue_leyendo_las_sinteticas_aunque_tengan_conversacion(cliente, alumno, fake, bd):
+    """ANTIFUGA con la 013: se entrena con `origen='sintetico'` (con o sin conversación) y nunca con las reales."""
+    from scripts import train_classifier
+    _, sid = sintetica_con_turnos(bd, alumno, sesion_num=1)
+    terminar_conversacion(cliente, fake, alumno)                  # una real del mismo alumno
+    ses, _ = train_classifier.cargar()
+    suyas = ses[ses["alumno_id"] == alumno]
+    assert list(suyas["session_id"]) == [sid]
+
+
 def test_turno_guarda_iniciativa_y_ayudas(cliente, alumno, fake, bd):
     cid = terminar_conversacion(cliente, fake, alumno, evaluaciones=(0, 2, 2, 2, 2))   # M1: 0 -> ayuda -> 2
     with bd.connect() as c:
