@@ -29,6 +29,7 @@ ETIQUETA = {"progreso": "progreso", "estancamiento": "estancamiento", "regresion
 def etiqueta_db(e: str) -> str:
     """Normaliza etiquetas de cualquier generador («Progreso», «Regresión», «Progreso (alta variabilidad)») al valor de la BD."""
     return e.split(" (")[0].strip().lower().replace("ó", "o")
+NIVELES_RUIDO = {"bajo", "medio", "alto"}   # ER v2: student_profile_sim.nivel_ruido
 NS = uuid.UUID("5d85eb0c-0000-4000-8000-50c1a15101c0")  # UUIDs deterministas: misma semilla -> mismos ids
 
 
@@ -39,6 +40,13 @@ def corpus_marcos(seed: int | None):
     cfg = cargar_config(SRC / "generador" / "config.yaml")
     train, meta = generar_corpus(cfg, seed)
     n_ses = train.groupby("alumno_id").size()
+    columnas = ["student_id", "competencia_objetivo", "trayectoria_disenada", "tramo_edad", "n_sesiones",
+                "sesion_inicio_evento", "arquetipo", "ambiguo", "tipo_ambiguo"]
+    if "nivel_ruido" in meta:   # lo añade el generador de Marcos (acuerdo del 25/10/2026); con el anterior queda en NULL
+        invalidos = sorted(set(meta["nivel_ruido"].dropna()) - NIVELES_RUIDO)
+        if invalidos:
+            raise ValueError(f"nivel_ruido solo admite {sorted(NIVELES_RUIDO)} (ER v2); el generador devolvió {invalidos}")
+        columnas.append("nivel_ruido")
     perfiles = meta.assign(
         student_id=meta["alumno_id"],
         competencia_objetivo=meta["competencia"],
@@ -48,8 +56,7 @@ def corpus_marcos(seed: int | None):
         ambiguo=meta["ambiguo"].astype(bool),
         tipo_ambiguo=meta["tipo_ambiguo"].replace("", None),
         sesion_inicio_evento=meta["inicio_cambio"],      # nombre del ER (migración 008)
-    )[["student_id", "competencia_objetivo", "trayectoria_disenada", "tramo_edad", "n_sesiones",
-       "sesion_inicio_evento", "arquetipo", "ambiguo", "tipo_ambiguo"]]
+    )[columnas]
     comp = meta.set_index("alumno_id")["competencia"]
     sesiones = train.assign(
         session_id=[str(uuid.uuid5(NS, f"{a}-{n}")) for a, n in zip(train["alumno_id"], train["sesion"])],
