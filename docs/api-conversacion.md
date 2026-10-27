@@ -38,10 +38,26 @@ Esta tabla (`conversacion_turno`) es la fuente para calcular métricas reales m�
 | 404 | `alumno_no_encontrado`, `conversacion_no_encontrada` | |
 | 409 | `conversacion_terminada` | turno sobre una conversación cerrada |
 | 422 | `competencia_invalida` / validación | |
+| 429 (+`Retry-After`) | `limite_sesiones_semana` | el alumno ya abrió `MAX_SESIONES_SEMANA` conversaciones reales en los últimos 7 días (solo si el límite está activo) |
 | 503 (+`Retry-After`) | `llm_no_disponible`, `llm_ocupado` | Ollama no responde tras los reintentos / cola saturada |
 | 503 | `modelo_no_encontrado` | el mensaje trae `ollama pull <modelo>` |
 | 502 | `respuesta_invalida` | JSON inválido tras 1 reintento |
 | 500 | `contexto_excedido` | el prompt no cabe en `num_ctx` (nunca se trunca en silencio) |
+
+### Límite de sesiones por semana (opcional, apagado por defecto)
+`MAX_SESIONES_SEMANA=n` (en `environment/.env`; `0` o sin definir = sin límite) impide que un mismo alumno abra más de `n` conversaciones
+reales en los últimos 7 días. Se comprueba al abrir la conversación (`POST /conversaciones`), después de validar alumno y competencia.
+
+- **Ventana móvil** de 7 × 24 h medida con el reloj de la base de datos, no semana natural: una conversación deja de contar a los 7 días exactos de abrirse.
+- **Qué cuenta:** las conversaciones abiertas del alumno que no son de prueba, estén terminadas o no (cerrar una no libera el cupo).
+  No cuentan ni se bloquean las de `prueba: true`, las sintéticas (`es_prueba`) ni las del modo simulado con `SIMULADO_REGISTRA_SESIONES=false` (todas son de prueba).
+- **Respuesta al superarlo:** `429 {codigo: "limite_sesiones_semana", mensaje, reintentable: false}` con `Retry-After` (segundos hasta que sale de la ventana la
+  conversación que libera el cupo). El `mensaje` dice el límite y la fecha (UTC) a partir de la cual puede abrir otra. El chat del menor lo muestra como
+  «Ya has jugado todas las veces que tocaban esta semana. ¡Vuelve otro día!».
+- **Alcance del límite:** no necesita migración. Es un límite de uso del prototipo, no una garantía: el alumno se identifica solo por su `student_id`
+  (el chat del menor no tiene autenticación), el menor puede marcar «prueba» en el chat, y dos aperturas simultáneas podrían pasar a la vez.
+  Lo que sí garantiza es que, con el límite activo, una apertura normal no lo supera.
+- Pruebas: `src/tests/test_limites.py` (apagado por defecto, por alumno, ventana, `Retry-After`, pruebas, modo simulado).
 
 ### `GET /health`
 `llm` es `"ok"` o un mensaje accionable (Ollama caído → que el Ollama de Windows escuche con su propio `OLLAMA_HOST=0.0.0.0` y que el contenedor llegue a `host.docker.internal`;
