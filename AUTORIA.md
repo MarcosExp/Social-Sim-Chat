@@ -28,6 +28,15 @@ Origen: `MarcosExp/Social-Sim-Chat`, PR #2, copiado el 12/10/2026 (commit `5d85e
   (transcripción de `Guiones_Dialogo.md`, NF1): trabajo del equipo en el entregable NF1.
 - `data/init-db/001_schema.sql`: esquema inicial del NF2.
 
+## Trabajo previo de uno de los autores
+
+El proyecto parte del TFM de 2020 de Álvaro García Puche, «Síndrome de Asperger-chatbot: comunicación y sus efectos en las
+relaciones sociales» (Máster Universitario en Tecnología Educativa y Competencias Digitales, Universidad Internacional de La Rioja;
+Proyecto de Innovación dirigido por Dyanne Ruiz Castañeda; 23/09/2020). Es obra individual de Álvaro; Marcos no participó en él.
+De ese trabajo salen la idea de partida, los tres tramos de edad (6-8, 8-10 y 10-12 años), las cuatro competencias pragmáticas y la
+estructura de ramas del guion de apertura de `src/app/guiones/guiones.json`, adaptada de su Anexo A. El documento del TFM no está
+en este repositorio. En `docs/`, «TFM» a secas designa la documentación del proyecto del módulo (NF1 y NF2), no ese trabajo.
+
 ## Uso de inteligencia artificial
 Declarado según las instrucciones de entrega del módulo (el uso de IA está permitido y debe indicarse dónde y cómo):
 - **Claude (Anthropic), como asistente de programación** con Claude Code: escritura y revisión de código del backend, dashboard, migraciones, scripts y tests (Álvaro), depuración, refactorizaciones y generación de la documentación técnica (ADR, contratos de API, informes de validación, este repositorio). **La memoria (`fase2_grupo12.pdf`) también se ha redactado con ayuda de Claude** a partir del repositorio y de los informes de medición. El autor ejecutó y verificó el resultado (tests y pruebas manuales en su entorno); el recuento de pruebas lo da `pytest` (`make test`) y no se copia en el README.
