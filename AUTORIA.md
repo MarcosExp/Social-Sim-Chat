@@ -37,6 +37,10 @@ métricas, el dashboard y el chat. En NF3 la plataforma la aporta Álvaro, desde
 aporta el generador de corpus, las features, el clasificador, `generar_turnos.py` y `nivel_ruido`. El detalle por bloque está en
 el apartado de reparto de trabajo de la memoria.
 
+Motivo del cambio, según Álvaro (pendiente de que Marcos lo confirme): Álvaro había avanzado en paralelo en el desarrollo de
+la aplicación con una IA local, de modo que cuando se repartió el trabajo del NF3 ya tenía datos y frontend, y la plataforma
+pasó a su lado. El uso de esa IA local en el desarrollo paralelo se declara como uso de IA, igual que el de Claude.
+
 ## Material de equipo (a confirmar entre los dos)
 
 - `src/scripts/generador_corpus_sintetico.py` (generador anterior, heredado del NF1) y `src/app/guiones/guiones.json`
