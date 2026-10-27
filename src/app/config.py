@@ -5,6 +5,7 @@ de desarrollo local.
 """
 from pathlib import Path
 
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -48,6 +49,11 @@ class Settings(BaseSettings):
     # Modo simulado: sus conversaciones son `es_prueba` (no generan sesión ni métricas reales) para no mezclar valoraciones por reglas
     # con datos reales. Ponlo a true SOLO en una base de datos de demostración, para ver el recorrido completo en el dashboard.
     simulado_registra_sesiones: bool = False
+
+    # Límite de conversaciones reales que un mismo alumno puede abrir en los últimos 7 días (ventana móvil). 0 = sin límite (valor
+    # por defecto, para que una demostración o una prueba no se bloquee). Solo cuenta y solo bloquea las conversaciones que no son de
+    # prueba. Ver docs/api-conversacion.md («Límite de sesiones por semana»).
+    max_sesiones_semana: int = Field(default=0, ge=0)
 
     tabbyapi_host: str = "http://host.docker.internal:5000"
     tabbyapi_model: str = "Qwen3.8-27B-EXL3-3.0bpw"

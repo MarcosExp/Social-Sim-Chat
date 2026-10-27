@@ -72,6 +72,8 @@ services:
       LLM_COMPAT_REASONING_EFFORT: ${LLM_COMPAT_REASONING_EFFORT-none}   # sin ":" a propósito: vacío = no enviar el campo
       # Proveedor LLM_PROVIDER=simulado (reglas, sin LLM ni GPU). Por defecto sus conversaciones son de prueba (no crean sesión real).
       SIMULADO_REGISTRA_SESIONES: ${SIMULADO_REGISTRA_SESIONES:-false}
+      # Límite de conversaciones reales por alumno en 7 días (0 = sin límite). Ver docs/api-conversacion.md.
+      MAX_SESIONES_SEMANA: ${MAX_SESIONES_SEMANA:-0}
       TABBYAPI_HOST: ${TABBYAPI_HOST:-http://host.docker.internal:5000}
       TABBYAPI_MODEL: ${TABBYAPI_MODEL:-Qwen3.8-27B-EXL3-3.0bpw}
       TABBYAPI_API_KEY: ${TABBYAPI_API_KEY:-}
