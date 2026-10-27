@@ -7,7 +7,8 @@ from pydantic import ValidationError
 from sqlalchemy import text
 
 from app.config import Settings, settings
-from tests.test_api_conversacion import crear
+from tests.conftest import PREFIJO
+from tests.test_api_conversacion import crear, turno
 from tests.test_api_dashboard import AUTOR, _sesion_sintetica
 from tests.test_er_v2 import _terminar_con, _vista
 
@@ -184,7 +185,8 @@ def test_el_nombre_del_terapeuta_admite_acentos_codificados_en_la_cabecera(clien
 
 # ------------------------------------------------------------------------------------------------ límite de sesiones por semana
 def _antiguedad(bd, cid, intervalo):
-    """Retrasa la apertura de una conversación (created_at) para probar la ventana móvil de 7 días."""
+    """Retrasa la apertura de una conversación (created_at) para probar la ventana móvil de 7 días. Se pasa en horas: un intervalo
+    en «días» se calcula con el calendario de la zona horaria de la sesión y, al cruzar un cambio de hora, no son 24 h exactas."""
     with bd.begin() as c:
         c.execute(text("UPDATE conversacion SET created_at = now() - CAST(:i AS INTERVAL) WHERE conversacion_id = CAST(:c AS UUID)"),
                   {"i": intervalo, "c": cid})
@@ -216,10 +218,13 @@ def test_al_superar_el_limite_semanal_no_se_abre_otra_conversacion(cliente, alum
     with bd.begin() as c:
         assert c.execute(text("SELECT count(*) FROM conversacion WHERE student_id = :s"), {"s": alumno}).scalar() == 2
     # Cerrar la primera no libera el cupo: cuenta lo abierto, no lo terminado.
-    for ev in (2, 2, 2, 2, 2, 2, 2, 2):
-        fake.respuestas = [ev]
-        if turno(cliente, primera, "hola").json().get("estado") == "terminada":
+    estado = None
+    for _ in range(20):
+        fake.respuestas = [2]
+        estado = turno(cliente, primera, "¿qué quiere decir eso?").json()["estado"]
+        if estado == "terminada":
             break
+    assert estado == "terminada"
     assert _abrir(cliente, alumno).status_code == 429
 
 
@@ -243,7 +248,7 @@ def test_las_conversaciones_de_mas_de_siete_dias_no_cuentan(cliente, alumno, fak
     vieja = crear(cliente, alumno)["conversacion_id"]
     crear(cliente, alumno)
     assert _abrir(cliente, alumno).status_code == 429
-    _antiguedad(bd, vieja, "8 days")
+    _antiguedad(bd, vieja, "192 hours")
     assert _abrir(cliente, alumno).status_code == 201                          # la de hace 8 días ya no cuenta
 
 
@@ -251,8 +256,8 @@ def test_retry_after_dice_cuando_sale_de_la_ventana_la_conversacion_mas_antigua(
     monkeypatch.setattr(settings, "max_sesiones_semana", 2)
     a = crear(cliente, alumno)["conversacion_id"]
     b = crear(cliente, alumno)["conversacion_id"]
-    _antiguedad(bd, a, "6 days 23 hours")                                      # sale de la ventana dentro de ~1 hora
-    _antiguedad(bd, b, "1 day")
+    _antiguedad(bd, a, "167 hours")                                            # sale de la ventana dentro de ~1 hora
+    _antiguedad(bd, b, "24 hours")
     r = _abrir(cliente, alumno)
     assert r.status_code == 429
     assert 3500 <= int(r.headers["Retry-After"]) <= 3700
