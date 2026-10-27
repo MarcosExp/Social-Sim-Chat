@@ -17,12 +17,25 @@ Origen: `MarcosExp/Social-Sim-Chat`, PR #2, copiado el 12/10/2026 (commit `5d85e
   dashboard `src/dashboard/`, chat `src/app/static/chat/`, scripts de `src/scripts/` salvo los heredados, tests `src/tests/`,
   `environment/`, `scripts/`, `Makefile` y la documentación de `docs/` (salvo los JSON de validación).
 - Desarrollado con ayuda de Claude (Anthropic) como asistente de programación; los commits llevan esa atribución.
+- **Historial de Git.** Los commits cuyo autor Git es «Claude» (`Claude <noreply@anthropic.com>`) los hizo y subió Claude Code a partir de
+  propuestas de Álvaro, que decidió qué se hacía y ordenó cada fusión; llevan la línea `Co-Authored-By`. Las fusiones de las
+  pull requests salen de la cuenta de Álvaro (`cCoolBoox`) y los commits de Marcos llevan su nombre. Por eso `git shortlog` no
+  dice por sí solo quién decidió cada cambio: para eso sirve este fichero y el apartado de reparto de trabajo de la memoria.
 
 ## Material de equipo (a confirmar entre los dos)
 
 - `src/scripts/generador_corpus_sintetico.py` (generador anterior, heredado del NF1) y `src/app/guiones/guiones.json`
   (transcripción de `Guiones_Dialogo.md`, NF1): trabajo del equipo en el entregable NF1.
 - `data/init-db/001_schema.sql`: esquema inicial del NF2.
+
+## Trabajo previo de uno de los autores
+
+El proyecto parte del TFM de 2020 de Álvaro García Puche, «Síndrome de Asperger-chatbot: comunicación y sus efectos en las
+relaciones sociales» (Máster Universitario en Tecnología Educativa y Competencias Digitales, Universidad Internacional de La Rioja;
+Proyecto de Innovación dirigido por Dyanne Ruiz Castañeda; 23/09/2020). Es obra individual de Álvaro; Marcos no participó en él.
+De ese trabajo salen la idea de partida, los tres tramos de edad (6-8, 8-10 y 10-12 años), las cuatro competencias pragmáticas y la
+estructura de ramas del guion de apertura de `src/app/guiones/guiones.json`, adaptada de su Anexo A. El documento del TFM no está
+en este repositorio. En `docs/`, «TFM» a secas designa la documentación del proyecto del módulo (NF1 y NF2), no ese trabajo.
 
 ## Uso de inteligencia artificial
 Declarado según las instrucciones de entrega del módulo (el uso de IA está permitido y debe indicarse dónde y cómo):
