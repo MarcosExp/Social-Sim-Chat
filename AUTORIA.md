@@ -40,8 +40,9 @@ aporta el generador de corpus, las features, el clasificador, `generar_turnos.py
 el apartado de reparto de trabajo de la memoria.
 
 Motivo del cambio, según Álvaro (pendiente de que Marcos lo confirme): Álvaro había avanzado en paralelo en el desarrollo de
-la aplicación con una IA local, de modo que cuando se repartió el trabajo del NF3 ya tenía datos y frontend, y la plataforma
-pasó a su lado. Ese desarrollo paralelo también contó con IA, que se declara en el apartado «Uso de inteligencia artificial».
+la aplicación sobre su pila local (Docker con Ollama y `qwen3:14b`), donde hizo todas las pruebas, de modo que cuando se repartió
+el trabajo del NF3 ya tenía datos y frontend, y la plataforma pasó a su lado. Ese LLM local es parte del producto y se declara en
+el apartado «Uso de inteligencia artificial»; el desarrollo del código lo aportó Claude, como se indica arriba.
 
 ## Material de equipo (a confirmar entre los dos)
 
