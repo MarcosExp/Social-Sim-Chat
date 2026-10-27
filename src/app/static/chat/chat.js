@@ -18,6 +18,7 @@
     contexto_excedido: "La conversación se ha hecho demasiado larga.",
     conversacion_terminada: "Esta conversación ya ha terminado.",
     conversacion_no_encontrada: "No encuentro esta conversación.",
+    limite_sesiones_semana: "Ya has jugado todas las veces que tocaban esta semana. ¡Vuelve otro día!",
   };
 
   let conv = null;                 // {id, personaje, estado}

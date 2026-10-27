@@ -22,9 +22,9 @@ import re
 import uuid
 import weakref
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app import guarda, llm_client, metricas, simulado
@@ -48,9 +48,10 @@ SCHEMA_EVALUACION = {
 
 
 class ErrorConversacion(Exception):
-    def __init__(self, status: int, codigo: str, mensaje: str):
+    def __init__(self, status: int, codigo: str, mensaje: str, reintentar_en_s: int | None = None):
         super().__init__(mensaje)
         self.status, self.codigo, self.mensaje = status, codigo, mensaje
+        self.reintentar_en_s = reintentar_en_s     # segundos hasta que el error deja de ocurrir (cabecera Retry-After), si se sabe
 
 
 @dataclass
@@ -135,6 +136,37 @@ def _agregar(conv: Conversacion, **kw) -> ConversacionTurno:
 
 
 # --------------------------------------------------------------------------- crear
+VENTANA_SESIONES = timedelta(days=7)
+
+
+def _comprobar_limite_semanal(db: Session, student_id: str) -> None:
+    """Rechaza (429) abrir otra conversación si el alumno ya abrió `max_sesiones_semana` en los últimos 7 días.
+
+    Ventana móvil y reloj de la base de datos. Cuenta las conversaciones abiertas (terminadas o no) que no son de prueba. Con
+    `max_sesiones_semana = 0` (por defecto) no hace nada. Es un límite de uso del prototipo, no una garantía estricta: dos
+    aperturas simultáneas podrían pasar a la vez, y el alumno se identifica solo por su `student_id` (no hay autenticación del menor).
+    """
+    maximo = settings.max_sesiones_semana
+    if maximo <= 0:
+        return
+    ahora = db.scalar(select(func.now()))
+    abiertas = db.scalars(
+        select(Conversacion.created_at)
+        .where(Conversacion.student_id == student_id, Conversacion.es_prueba.is_(False),
+               Conversacion.created_at >= ahora - VENTANA_SESIONES)
+        .order_by(Conversacion.created_at)).all()
+    if len(abiertas) < maximo:
+        return
+    # Para poder abrir otra tienen que salir de la ventana len(abiertas) - maximo + 1 conversaciones, empezando por las más antiguas.
+    libre = abiertas[len(abiertas) - maximo] + VENTANA_SESIONES
+    espera = max(1, int((libre - ahora).total_seconds()) + 1)
+    raise ErrorConversacion(
+        429, "limite_sesiones_semana",
+        f"El alumno {student_id!r} ya ha abierto {len(abiertas)} conversaciones en los últimos 7 días (límite: {maximo}). "
+        f"Podrá abrir otra a partir del {libre.astimezone(timezone.utc):%Y-%m-%d %H:%M} UTC.",
+        reintentar_en_s=espera)
+
+
 def crear_conversacion(db: Session, student_id: str, competencia: str | None, alias: str | None,
                        prueba: bool = False) -> ResultadoTurno:
     guiones = cargar_guiones()
@@ -146,11 +178,14 @@ def crear_conversacion(db: Session, student_id: str, competencia: str | None, al
         raise ErrorConversacion(422, "competencia_invalida",
                                 f"Competencia {comp!r} sin guion. Disponibles: {sorted(guiones.competencias)}.")
     g = guiones.competencias[comp]
+    es_prueba = prueba or (settings.llm_simulado and not settings.simulado_registra_sesiones)
+    if not es_prueba:
+        _comprobar_limite_semanal(db, student_id)
     conv = Conversacion(
         conversacion_id=uuid.uuid4(), student_id=student_id, competencia=comp, personaje=g.personaje,
         alias=alias or student_id, estado="en_curso", nodo_actual="a1", intento=1,
         guion_version=guiones.version, modelo=simulado.MODELO if settings.llm_simulado else None,
-        es_prueba=prueba or (settings.llm_simulado and not settings.simulado_registra_sesiones))
+        es_prueba=es_prueba)
     db.add(conv)
     bot = TurnoBot("a1", "apertura", g.personaje, [guiones.apertura["a1"].format(nombre_usuario=conv.alias)])
     _agregar(conv, rol="bot", nodo="a1", tipo="apertura", intento=1, texto=bot.texto)

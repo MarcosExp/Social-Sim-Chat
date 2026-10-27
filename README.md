@@ -46,6 +46,7 @@ make test     # tests de contrato con un Ollama simulado (no necesita GPU ni mod
 
 - Dashboard: <http://localhost:8501> (pipeline, alumno, modelo, sesiones reales). API y `/docs`: <http://localhost:8010>.
 - Las pantallas del terapeuta exigen `X-API-Key`; en compose la clave por defecto es `dev-terapeuta-local` (solo desarrollo; cámbiala en `environment/.env`).
+- **Límite de sesiones por semana (opcional):** `MAX_SESIONES_SEMANA=n` en `environment/.env` limita las conversaciones reales que un alumno abre en 7 días; `0` (por defecto) lo desactiva. Detalle y alcance en [`docs/api-conversacion.md`](docs/api-conversacion.md#límite-de-sesiones-por-semana-opcional-apagado-por-defecto).
 - **Sin Ollama el stack arranca igual:** `GET /health` responde `degraded` (la BD está bien, el LLM no), y todo lo anterior funciona. Lo único que no funciona es **conversar en el chat** (`/chat/`), porque cada turno llama a un LLM.
 - Windows sin make: `powershell -ExecutionPolicy Bypass -File scripts\setup-local.ps1 -SinModelo` (equivalente a `make up seed train` sin descargar el modelo) y `scripts\test-local.ps1` para los tests.
 - `make reset` borra volúmenes y modelo para empezar de cero.

@@ -17,7 +17,7 @@ from app.schemas import (AlumnoChatOut, ConversacionDetalleOut, ConversacionIn, 
 
 router = APIRouter(prefix="/conversaciones", tags=["conversaciones"])
 
-_ERR = {404: {"model": ErrorOut}, 409: {"model": ErrorOut}, 422: {"model": ErrorOut},
+_ERR = {404: {"model": ErrorOut}, 409: {"model": ErrorOut}, 422: {"model": ErrorOut}, 429: {"model": ErrorOut},
         502: {"model": ErrorOut}, 503: {"model": ErrorOut}}
 
 
@@ -53,7 +53,8 @@ def crear(body: ConversacionIn, db: Session = Depends(get_db)):
     try:
         r = svc.crear_conversacion(db, body.student_id, body.competencia, body.alias, body.prueba)
     except svc.ErrorConversacion as e:
-        return _error(e.status, e.codigo, e.mensaje)
+        espera = {"Retry-After": str(e.reintentar_en_s)} if e.reintentar_en_s else None
+        return _error(e.status, e.codigo, e.mensaje, headers=espera)
     return ConversacionOut(**_base(r))
 
 
