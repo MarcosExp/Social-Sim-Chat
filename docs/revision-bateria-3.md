@@ -1,7 +1,7 @@
 # Revisión de la batería 3 (examen del prompt de valoración)
 
 Respuestas y etiquetas escritas por **`gpt-oss:20b`** (otra familia que el evaluador `qwen3:14b`), sin ver el prompt del evaluador ni las baterías 1 y 2.
-Las etiquetas son una **propuesta sin revisar**. Esta batería **no se usa para afinar el prompt**, solo para medirlo al final.
+Las etiquetas eran una propuesta de la IA; las revisó Marcos el 27/10/2026 (ver más abajo). Esta batería **no se usa para afinar el prompt**, solo para medirlo al final.
 
 Cómo revisar: en cada fila, marca si estás de acuerdo con `esperado`; si no, escribe la nota que pondrías. Luego se corrige
 `src/tests/data/bateria_valoracion_3.json` (campo `esperado`) y se pone `revisada_por_humano: true`.

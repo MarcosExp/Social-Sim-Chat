@@ -33,8 +33,8 @@
 |---|---|---|---|---|
 | 1 | 88 (13 buenas, 75 malas) | se escribió al diagnosticar el prompt | desarrollo (el prompt se afinó con ella) | no |
 | 2 | 121 (27 buenas, 71 malas, 23 fronterizas) | la misma IA que el prompt | desarrollo | no |
-| 3 | 104 (26 por tipo) | `gpt-oss:20b` | examen del LLM (12/10/2026); después se usó para afinar el modo simulado | no (`docs/revision-bateria-3.md`) |
-| 4 | 104 (26 por tipo) | Claude Sonnet 5.5 | examen a ciegas del modo simulado (25/10/2026), medida una vez | no (`docs/revision-bateria-4.md`) |
+| 3 | 104 (26 por tipo) | `gpt-oss:20b` | examen del LLM (12/10/2026); después se usó para afinar el modo simulado | sí: Marcos, con ayuda de Claude, 27/10/2026 (15 cambiadas; `docs/revision-bateria-3.md`) |
+| 4 | 104 (26 por tipo) | Claude Sonnet 5.5 | examen a ciegas del modo simulado (25/10/2026), medida una vez | sí: Marcos, con ayuda de Claude, 27/10/2026 (1 cambiada; `docs/revision-bateria-4.md`) |
 
 **Resultados medidos** (cifras copiadas de `docs/informe-validacion-metricas-reales.md` §10.6 y `docs/modo-simulado.md`):
 
@@ -50,9 +50,11 @@
 | LLM falso (simulado) | 4 (a ciegas) | 21/26 (80,8 %) | 1/52 (1,9 %) | 25/10/2026, una pasada determinista |
 | LLM falso (simulado) | 3 (ya afinada) | 24/26 | 5/52 | desarrollo, no cuenta como examen |
 
+**Etiquetas revisadas el 27/10/2026.** Todas las filas anteriores de la batería 3 (LLM real el 12, 25 y 26/10 y modo simulado «ya afinada») se midieron con las etiquetas anteriores a esa revisión, con 26 buenas y 52 malas. La batería 3 revisada tiene 23 buenas y 53 malas, así que esas cifras no son comparables con ella y están pendientes de volver a medir con `qwen3:14b`. En la batería 4 solo cambió una fronteriza (b4-005): las buenas con 2 y los falsos 2 no cambian, pero las fronterizas aceptables hay que recontarlas con el LLM real. Con las etiquetas revisadas, el modo simulado da (27/10/2026, sin historial, una pasada): batería 3, 22/23 buenas y 3/53 falsos 2; batería 4, 21/26 y 1/52, igual que antes.
+
 **Lo que NO está comprobado** (se declara en la memoria):
 - La batería 4 se midió con el LLM real el 25/10/2026 (filas de arriba). Las repeticiones casi no aportan información: fallan los mismos casos las tres veces, así que la muestra efectiva es de 26 buenas y 52 malas. `LLM_PROVIDER=openai` se midió con las baterías 3 y 4 solo con TabbyAPI y otro modelo (`Qwen3-Coder-30B-A3B`, filas de arriba, 26/10/2026): da más falsos 2 que `qwen3:14b` y la batería 3 no cumple los umbrales, así que el evaluador **solo está validado con `qwen3:14b`**. No se midió el mismo modelo por los dos servidores, ni con vLLM ni con LM Studio.
-- Las etiquetas de las baterías 3 y 4 las propuso una IA y **no las ha revisado ninguna persona**; hasta que alguien distinto de quien escribió las reglas las revise (hojas de revisión en `docs/`), los resultados son provisionales.
+- Las etiquetas de las baterías 3 y 4 las propuso una IA y las revisó una persona, Marcos, el 27/10/2026, con ayuda de otra IA (Claude), que propuso los cambios (16 etiquetas cambiadas; según él, la decisión en cada caso fue suya y no escribió las reglas ni el prompt). No es la anotación de un terapeuta, y la ayuda de la IA le resta independencia: los resultados siguen siendo provisionales y las cifras del LLM real de la batería 3 están pendientes de remedir con las etiquetas nuevas (hojas en `docs/`).
 - **No hay conversaciones reales anotadas** ni se ha medido el acuerdo con el terapeuta; las baterías son respuestas escritas, no habla de menores.
 - El sesgo conocido del LLM es hacia **infravalorar** (ante la duda, 0): baja PEPE y %DET de alumnos que sí aciertan.
 
