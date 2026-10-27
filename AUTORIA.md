@@ -24,6 +24,19 @@ La única modificación hecha en este repositorio es de Marcos: `generador_corpu
   pull requests salen de la cuenta de Álvaro (`cCoolBoox`) y los commits de Marcos llevan su nombre. Por eso `git shortlog` no
   dice por sí solo quién decidió cada cambio: para eso sirve este fichero y el apartado de reparto de trabajo de la memoria. Desde el 27/10/2026 los commits que hace Claude Code se firman con el nombre de Álvaro y conservan la línea `Co-Authored-By: Claude`, de modo que el uso de IA sigue constando en cada uno; el historial anterior no se ha reescrito.
 
+## Procedencia de la plataforma y reparto respecto al NF2
+
+La primera revisión de este repositorio (`219a960`, 23/10/2026) es una instantánea depurada de un repositorio privado de
+Soultech Labs, la empresa de Álvaro: backend, migraciones 001 a 011, dashboard, chat, clasificador, tests y documentación de
+las API, sin documentos internos ni material del curso. La historia anterior de esas piezas está en aquel repositorio y no en
+este. El NF2 ya lo declaró en su anexo B como origen del código del chat y del dashboard.
+
+El NF2 (secciones 1 y 11) asignó a Marcos la plataforma (backend, base de datos, Docker Compose, API, conversación, puntuación
+0/1/2, métricas, entrenamiento y predicción) además del generador y el clasificador, y a Álvaro el dominio pedagógico, las
+métricas, el dashboard y el chat. En NF3 la plataforma la aporta Álvaro, desde ese repositorio y con ayuda de Claude, y Marcos
+aporta el generador de corpus, las features, el clasificador, `generar_turnos.py` y `nivel_ruido`. El detalle por bloque está en
+el apartado de reparto de trabajo de la memoria.
+
 ## Material de equipo (a confirmar entre los dos)
 
 - `src/scripts/generador_corpus_sintetico.py` (generador anterior, heredado del NF1) y `src/app/guiones/guiones.json`
