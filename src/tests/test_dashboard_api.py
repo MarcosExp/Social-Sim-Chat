@@ -113,3 +113,15 @@ def test_las_horas_se_muestran_en_hora_peninsular(dashboard, cliente, alumno, fa
     tablas = [d.value for d in at.dataframe if "fecha (hora peninsular)" in d.value.columns]
     assert tablas and esperado in set(tablas[-1]["fecha (hora peninsular)"])
     assert any("hora peninsular" in c.value for c in at.caption)
+
+
+def test_las_sesiones_sin_ventana_dicen_datos_insuficientes(dashboard, cliente, alumno, fake):
+    """NF2, historia 12: las sesiones anteriores a la ventana de 4 muestran «datos insuficientes», no una celda vacía."""
+    _terminar_con(cliente, fake, alumno, ())                       # una sesión real: la 1.ª, sin ventana completa
+    at = dashboard()
+    _sin_fallos(at)
+    [s for s in at.selectbox if s.label == "Alumno simulado"][0].select(alumno).run()
+    _sin_fallos(at)
+    tablas = [d.value for d in at.dataframe if "predicha" in d.value.columns]
+    assert tablas and set(tablas[-1]["predicha"]) == {"datos insuficientes"}
+    assert any("datos insuficientes" in c.value for c in at.caption)

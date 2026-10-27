@@ -139,6 +139,11 @@ with tab_alumno:
         ses["real"] = ses["etiqueta_real_disenada"].map(norm)
         ses["etiqueta_predicha"] = ses["etiqueta_predicha"].map(lambda e: norm(e) if isinstance(e, str) else e)
         ses["corregida"] = ses["etiqueta_corregida"].map(lambda e: norm(e) if isinstance(e, str) else None)
+        ventana = gate["ventana_requerida"]
+        ses["etiqueta_predicha"] = [
+            e if isinstance(e, str) else ("datos insuficientes" if n < ventana else "sin predicción")
+            for e, n in zip(ses["etiqueta_predicha"], ses["sesion_num"])
+        ]
         if ses["es_estancamiento_operacional"].fillna(False).astype(bool).any():
             st.warning("Alerta operacional: 3 sesiones consecutivas predichas como estancamiento.")
         fig = go.Figure()
@@ -155,6 +160,8 @@ with tab_alumno:
                      "es_estancamiento_operacional": "alerta", "corregida": "corregida (terapeuta)"}
         )
         st.dataframe(tabla, width="stretch", hide_index=True)
+        st.caption(f"Las {ventana - 1} primeras sesiones no tienen predicción (datos insuficientes): el clasificador necesita "
+                   f"una ventana de {ventana} sesiones.")
         st.caption("Valores crudos de las métricas")
         st.dataframe(ses[["sesion_num", *METRICAS.keys()]], width="stretch", hide_index=True)
 
