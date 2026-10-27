@@ -48,7 +48,7 @@ Se mantiene **una sola tabla** `session_data`, con `origen IN ('sintetico','real
 Migración **012** (`012_quitar_turnos_jsonb.sql`): se quita la columna `turnos`, a petición de Marcos al revisar el ER v2. Los turnos viven solo en `conversacion_turno` (y en la vista `turn_data`, ADR-002). La migración **aborta** si alguna fila tiene datos en `turnos` (p. ej. un corpus cargado con el generador heredado), en lugar de borrarlos. El ER vigente es [`er_v2.mmd`](../er_v2.mmd) (sin `turnos`, contrastado columna a columna con el esquema real; solo omite las columnas de auditoría `created_at`/`updated_at`). Los recuentos de pruebas de este documento son los de su fecha; el recuento vigente está en el README.
 
 ## Addendum (23/10/2026) — turnos sintéticos: opción A (migración 013)
-**Decide:** Álvaro (dueño del esquema) · **Revisa:** Marcos, autor de `generar_turnos.py` (borrador en la rama `feature/generar-turnos`).
+**Decide:** Álvaro (dueño del esquema) · **Revisa:** Marcos, autor de `generar_turnos.py` (`src/scripts/generar_turnos.py`, PR n.º 9).
 
 La regla «`origen='real'` ⇔ `conversacion_id` no nulo» impedía que una sesión sintética tuviera turnos: `turn_data` (ADR-002) es una vista sobre `conversacion_turno` y solo veía conversaciones reales (0 filas con el corpus sembrado). Se relaja a **«real exige `conversacion_id`; sintético puede tenerlo»** (`CHECK (origen <> 'real' OR conversacion_id IS NOT NULL)`). El generador de turnos crea una `conversacion` terminada y sus `conversacion_turno` por cada sesión sintética y enlaza la sesión.
 

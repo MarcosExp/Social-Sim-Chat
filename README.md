@@ -15,14 +15,15 @@ Módulo C088 · Curso de Especialización en IA y Big Data (iFP) · Grupo 12: Á
 | Backend FastAPI (alumnos, sesiones, conversación, correcciones, modelo, predicciones, resumen) | `src/app/` | Implementado. Contrato: [`docs/api-dashboard.md`](docs/api-dashboard.md), [`docs/api-conversacion.md`](docs/api-conversacion.md) |
 | Chat del menor (HTML estático servido por el backend) | `src/app/static/chat/` → `http://localhost:8010/chat/` | Implementado; **necesita un LLM** (Ollama) para responder |
 | Dashboard del terapeuta (Streamlit, solo habla con la API) | `src/dashboard/` → `http://localhost:8501` | Implementado |
-| Generador de corpus sintético y evaluación antifuga | `src/generador/`, `src/ml/` | De Marcos, sin modificar |
+| Generador de corpus sintético y evaluación antifuga | `src/generador/`, `src/ml/` | De Marcos; la única modificación en este repositorio es la columna `nivel_ruido` del generador (`src/generador/ORIGEN.md`) |
+| Turnos sintéticos de cada sesión | `src/scripts/generar_turnos.py` (de Marcos), llamado al final de `seed_corpus.py` | Implementado; `--sin-turnos` los omite |
 | Clasificador (RandomForest, CV por alumno, anti-fuga) | `src/scripts/train_classifier.py` | Implementado; entrena offline y escribe la predicción en `session_data` |
-| Vista `turn_data` (una fila por figura, regla 2/1/0) | migración 009 | Implementada (solo conversaciones reales) |
+| Vista `turn_data` (una fila por figura, regla 2/1/0) | migración 009 | Implementada (conversaciones reales y turnos sintéticos) |
 | Tests | `src/tests/` | Pasan (`make test`; el recuento lo da pytest y no se copia aquí para que no quede desactualizado); usan un Ollama simulado (`tests/fake_ollama.py`) |
 
 ## Diseñado pero NO implementado (límites conocidos)
 
-- **Turnos sintéticos:** `generar_turnos.py` no existe; el corpus sintético no tiene turnos y la vista `turn_data` solo cubre conversaciones reales.
+- **Turnos sintéticos:** `generar_turnos.py` los deriva de las métricas de cada sesión (texto de relleno; conversaciones `origen='sintetico'` y `es_prueba`, que no entran en las métricas reales ni en el entrenamiento). Al recalcular las métricas desde los turnos, la diferencia con las de la sesión es de mediana 0,08 en PEPE, 0,06 en aMLU y 3,0 puntos en IRC (máximo 10,1), y el %DET del diseño no se reproduce: el propio script lo declara. El dashboard no muestra estos turnos.
 - **Predicción sobre sesiones reales:** no se hace. `GET /students/{id}/prediccion` devuelve `disponible:false` con los motivos (hacen falta 4 sesiones reales, `pct_DET` es provisional, el evaluador del 0/1/2 no está validado).
 - **Autenticación:** una clave compartida (`X-API-Key`) y un nombre de autor (`X-Terapeuta`) sin verificar. No hay usuarios ni roles.
 - **Silencios** del menor no se registran; la **nota clínica no está cifrada**; no hay predicción en línea.
