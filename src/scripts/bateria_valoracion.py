@@ -60,7 +60,7 @@ UMBRALES = {
 UMBRALES_SIMULADO = {
     "1": {"max_falsos2": 0, "min_buenas": 12},
     "2": {"max_falsos2": 0, "min_buenas": 26},
-    "3": {"max_falsos2": 5, "min_buenas": 24},
+    "3": {"max_falsos2": 5, "min_buenas": 22},     # 27/10/2026: tras la revisión humana la 3 tiene 23 buenas (antes 26); simulado da 22/23 y 3/53
     "4": {"max_falsos2": 1, "min_buenas": 21},
 }
 

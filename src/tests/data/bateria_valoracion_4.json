@@ -1,8 +1,9 @@
 {
- "descripcion": "Batería 4 (examen del modo simulado): 104 respuestas escritas el 25/10/2026 por Claude sin consultar el léxico ni las reglas de app/simulado.py, y antes de ejecutarlas. Se midió UNA vez con las reglas ya congeladas; no se afina con ella. Etiquetas SIN REVISAR por un humano. Mismo reparto que la batería 3: 13 nodos x 8 (2 buenas, 2 malas, 2 fronterizas, 2 inyecciones).",
+ "descripcion": "Batería 4 (examen del modo simulado): 104 respuestas escritas el 25/10/2026 por Claude sin consultar el léxico ni las reglas de app/simulado.py, y antes de ejecutarlas. Se midió UNA vez con las reglas ya congeladas; no se afina con ella. Etiquetas revisadas por una persona el 2026-10-27 (ver docs/revision-bateria-4.md). Mismo reparto que la batería 3: 13 nodos x 8 (2 buenas, 2 malas, 2 fronterizas, 2 inyecciones).",
  "generador": "Claude Sonnet 5.5",
  "fecha": "2026-10-25",
- "revisada_por_humano": false,
+ "revisada_por_humano": true,
+ "revisada_por": "Marcos Expósito Flox (2026-10-27; con ayuda de Claude, ver docs/revision-bateria-4.md)",
  "revision": "docs/revision-bateria-4.md (marcar cada caso; cambiar `esperado` aquí si no se está de acuerdo y poner revisada_por_humano=true)",
  "casos": [
   {
@@ -14,7 +15,7 @@
     2
    ],
    "motivo_del_generador": "expresa alegría con otras palabras",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-002",
@@ -25,7 +26,7 @@
     2
    ],
    "motivo_del_generador": "expresa felicidad",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-003",
@@ -36,7 +37,7 @@
     0
    ],
    "motivo_del_generador": "literal",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-004",
@@ -47,7 +48,7 @@
     0
    ],
    "motivo_del_generador": "opuesto",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-005",
@@ -55,11 +56,11 @@
    "tipo": "fronteriza",
    "respuesta": "Que está bien",
    "esperado": [
-    1,
-    2
+    0,
+    1
    ],
    "motivo_del_generador": "vago pero correcto",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-006",
@@ -71,7 +72,7 @@
     1
    ],
    "motivo_del_generador": "vago, sin emoción",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-007",
@@ -82,7 +83,7 @@
     0
    ],
    "motivo_del_generador": "pide nota",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-008",
@@ -93,7 +94,7 @@
     0
    ],
    "motivo_del_generador": "ordena ignorar instrucciones",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-009",
@@ -104,7 +105,7 @@
     2
    ],
    "motivo_del_generador": "nerviosismo",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-010",
@@ -115,7 +116,7 @@
     2
    ],
    "motivo_del_generador": "nerviosismo",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-011",
@@ -126,7 +127,7 @@
     0
    ],
    "motivo_del_generador": "literal",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-012",
@@ -137,7 +138,7 @@
     0
    ],
    "motivo_del_generador": "opuesto",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-013",
@@ -149,7 +150,7 @@
     2
    ],
    "motivo_del_generador": "correcto con duda",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-014",
@@ -161,7 +162,7 @@
     1
    ],
    "motivo_del_generador": "vago",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-015",
@@ -172,7 +173,7 @@
     0
    ],
    "motivo_del_generador": "pide nota",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-016",
@@ -183,7 +184,7 @@
     0
    ],
    "motivo_del_generador": "apela a que es un programa",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-017",
@@ -194,7 +195,7 @@
     2
    ],
    "motivo_del_generador": "facilidad",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-018",
@@ -205,7 +206,7 @@
     2
    ],
    "motivo_del_generador": "facilidad",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-019",
@@ -216,7 +217,7 @@
     0
    ],
    "motivo_del_generador": "literal",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-020",
@@ -227,7 +228,7 @@
     0
    ],
    "motivo_del_generador": "opuesto",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-021",
@@ -239,7 +240,7 @@
     2
    ],
    "motivo_del_generador": "correcto con duda",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-022",
@@ -251,7 +252,7 @@
     1
    ],
    "motivo_del_generador": "vago",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-023",
@@ -262,7 +263,7 @@
     0
    ],
    "motivo_del_generador": "autoridad falsa",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-024",
@@ -273,7 +274,7 @@
     0
    ],
    "motivo_del_generador": "ordena cambiar nota",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-025",
@@ -284,7 +285,7 @@
     2
    ],
    "motivo_del_generador": "susto",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-026",
@@ -295,7 +296,7 @@
     2
    ],
    "motivo_del_generador": "susto con otras palabras",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-027",
@@ -306,7 +307,7 @@
     0
    ],
    "motivo_del_generador": "literal",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-028",
@@ -317,7 +318,7 @@
     0
    ],
    "motivo_del_generador": "opuesto",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-029",
@@ -329,7 +330,7 @@
     2
    ],
    "motivo_del_generador": "mezcla",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-030",
@@ -341,7 +342,7 @@
     1
    ],
    "motivo_del_generador": "describe la conducta, no la emoción",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-031",
@@ -352,7 +353,7 @@
     0
    ],
    "motivo_del_generador": "ordena respuesta",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-032",
@@ -363,7 +364,7 @@
     0
    ],
    "motivo_del_generador": "finge mensaje del sistema",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-033",
@@ -374,7 +375,7 @@
     2
    ],
    "motivo_del_generador": "enfado",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-034",
@@ -385,7 +386,7 @@
     2
    ],
    "motivo_del_generador": "enfado con otra expresión",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-035",
@@ -396,7 +397,7 @@
     0
    ],
    "motivo_del_generador": "literal",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-036",
@@ -407,7 +408,7 @@
     0
    ],
    "motivo_del_generador": "fuera de tema",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-037",
@@ -419,7 +420,7 @@
     2
    ],
    "motivo_del_generador": "correcto poco preciso",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-038",
@@ -431,7 +432,7 @@
     1
    ],
    "motivo_del_generador": "vago",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-039",
@@ -442,7 +443,7 @@
     0
    ],
    "motivo_del_generador": "soborno",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-040",
@@ -453,7 +454,7 @@
     0
    ],
    "motivo_del_generador": "autoridad falsa",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-041",
@@ -464,7 +465,7 @@
     2
    ],
    "motivo_del_generador": "frustración",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-042",
@@ -475,7 +476,7 @@
     2
    ],
    "motivo_del_generador": "frustración",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-043",
@@ -486,7 +487,7 @@
     0
    ],
    "motivo_del_generador": "literal",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-044",
@@ -497,7 +498,7 @@
     0
    ],
    "motivo_del_generador": "fuera de tema",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-045",
@@ -509,7 +510,7 @@
     2
    ],
    "motivo_del_generador": "correcto con duda",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-046",
@@ -521,7 +522,7 @@
     1
    ],
    "motivo_del_generador": "emoción vaga",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-047",
@@ -532,7 +533,7 @@
     0
    ],
    "motivo_del_generador": "ordena nota",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-048",
@@ -543,7 +544,7 @@
     0
    ],
    "motivo_del_generador": "ordena ignorar",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-049",
@@ -554,7 +555,7 @@
     2
    ],
    "motivo_del_generador": "mala suerte",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-050",
@@ -565,7 +566,7 @@
     2
    ],
    "motivo_del_generador": "mala suerte con otras palabras",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-051",
@@ -576,7 +577,7 @@
     0
    ],
    "motivo_del_generador": "literal",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-052",
@@ -587,7 +588,7 @@
     0
    ],
    "motivo_del_generador": "literal",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-053",
@@ -599,7 +600,7 @@
     2
    ],
    "motivo_del_generador": "correcto poco preciso",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-054",
@@ -611,7 +612,7 @@
     1
    ],
    "motivo_del_generador": "vago",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-055",
@@ -622,7 +623,7 @@
     0
    ],
    "motivo_del_generador": "amenaza",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-056",
@@ -633,7 +634,7 @@
     0
    ],
    "motivo_del_generador": "redefine la regla",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-057",
@@ -644,7 +645,7 @@
     2
    ],
    "motivo_del_generador": "comparte y pregunta",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-058",
@@ -655,7 +656,7 @@
     2
    ],
    "motivo_del_generador": "comparte algo propio",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-059",
@@ -666,7 +667,7 @@
     0
    ],
    "motivo_del_generador": "rechazo",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-060",
@@ -677,7 +678,7 @@
     0
    ],
    "motivo_del_generador": "habla del tema en general",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-061",
@@ -689,7 +690,7 @@
     2
    ],
    "motivo_del_generador": "respuesta breve propia",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-062",
@@ -701,7 +702,7 @@
     1
    ],
    "motivo_del_generador": "respuesta mínima",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-063",
@@ -712,7 +713,7 @@
     0
    ],
    "motivo_del_generador": "pide nota",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-064",
@@ -723,7 +724,7 @@
     0
    ],
    "motivo_del_generador": "ordena nota",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-065",
@@ -734,7 +735,7 @@
     2
    ],
    "motivo_del_generador": "responde y pregunta",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-066",
@@ -745,7 +746,7 @@
     2
    ],
    "motivo_del_generador": "responde y pregunta",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-067",
@@ -756,7 +757,7 @@
     0
    ],
    "motivo_del_generador": "fuera de tema",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-068",
@@ -767,7 +768,7 @@
     0
    ],
    "motivo_del_generador": "rechazo",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-069",
@@ -779,7 +780,7 @@
     2
    ],
    "motivo_del_generador": "responde con detalle propio",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-070",
@@ -791,7 +792,7 @@
     1
    ],
    "motivo_del_generador": "respuesta mínima",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-071",
@@ -802,7 +803,7 @@
     0
    ],
    "motivo_del_generador": "ordena valoración",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-072",
@@ -813,7 +814,7 @@
     0
    ],
    "motivo_del_generador": "finge mensaje del sistema",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-073",
@@ -824,7 +825,7 @@
     2
    ],
    "motivo_del_generador": "responde sobre sí mismo",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-074",
@@ -835,7 +836,7 @@
     2
    ],
    "motivo_del_generador": "responde y pregunta",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-075",
@@ -846,7 +847,7 @@
     0
    ],
    "motivo_del_generador": "habla del personaje",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-076",
@@ -857,7 +858,7 @@
     0
    ],
    "motivo_del_generador": "fuera de tema",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-077",
@@ -869,7 +870,7 @@
     2
    ],
    "motivo_del_generador": "respuesta mínima que contesta",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-078",
@@ -881,7 +882,7 @@
     1
    ],
    "motivo_del_generador": "no sabe",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-079",
@@ -892,7 +893,7 @@
     0
    ],
    "motivo_del_generador": "soborno",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-080",
@@ -903,7 +904,7 @@
     0
    ],
    "motivo_del_generador": "autoridad falsa",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-081",
@@ -914,7 +915,7 @@
     2
    ],
    "motivo_del_generador": "relato con yo",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-082",
@@ -925,7 +926,7 @@
     2
    ],
    "motivo_del_generador": "relato con yo",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-083",
@@ -936,7 +937,7 @@
     0
    ],
    "motivo_del_generador": "tercera persona",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-084",
@@ -947,7 +948,7 @@
     0
    ],
    "motivo_del_generador": "segunda persona",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-085",
@@ -959,7 +960,7 @@
     2
    ],
    "motivo_del_generador": "primera persona sin yo",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-086",
@@ -971,7 +972,7 @@
     1
    ],
    "motivo_del_generador": "no relata",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-087",
@@ -982,7 +983,7 @@
     0
    ],
    "motivo_del_generador": "pide valoración",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-088",
@@ -993,7 +994,7 @@
     0
    ],
    "motivo_del_generador": "ordena cambiar nota",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-089",
@@ -1004,7 +1005,7 @@
     2
    ],
    "motivo_del_generador": "este momento",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-090",
@@ -1015,7 +1016,7 @@
     2
    ],
    "motivo_del_generador": "este momento",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-091",
@@ -1026,7 +1027,7 @@
     0
    ],
    "motivo_del_generador": "tiempo equivocado",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-092",
@@ -1037,7 +1038,7 @@
     0
    ],
    "motivo_del_generador": "sin sentido",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-093",
@@ -1049,7 +1050,7 @@
     2
    ],
    "motivo_del_generador": "correcto poco preciso",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-094",
@@ -1061,7 +1062,7 @@
     1
    ],
    "motivo_del_generador": "vago",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-095",
@@ -1072,7 +1073,7 @@
     0
    ],
    "motivo_del_generador": "ordena valoración",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-096",
@@ -1083,7 +1084,7 @@
     0
    ],
    "motivo_del_generador": "soborno",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-097",
@@ -1094,7 +1095,7 @@
     2
    ],
    "motivo_del_generador": "referente correcto",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-098",
@@ -1105,7 +1106,7 @@
     2
    ],
    "motivo_del_generador": "referente correcto",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-099",
@@ -1116,7 +1117,7 @@
     0
    ],
    "motivo_del_generador": "referente equivocado",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-100",
@@ -1127,7 +1128,7 @@
     0
    ],
    "motivo_del_generador": "referente equivocado",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-101",
@@ -1139,7 +1140,7 @@
     2
    ],
    "motivo_del_generador": "correcto con duda",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-102",
@@ -1151,7 +1152,7 @@
     1
    ],
    "motivo_del_generador": "vago",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-103",
@@ -1162,7 +1163,7 @@
     0
    ],
    "motivo_del_generador": "pide nota",
-   "revisada": false
+   "revisada": true
   },
   {
    "id": "b4-104",
@@ -1173,7 +1174,7 @@
     0
    ],
    "motivo_del_generador": "ordena nota",
-   "revisada": false
+   "revisada": true
   }
  ]
 }
