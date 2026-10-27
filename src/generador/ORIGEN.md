@@ -15,6 +15,12 @@ agrupan por alumno y competencia; informe por semilla en reports/»; `main` del 
 (nuestro) los resuelve para el backend y los scripts. Comprobado: features idénticas a las de la versión anterior
 (diferencia máxima 0,0) y mismo entrenamiento (F1-macro 0,793; recall de estancamiento 0,670; precisión 0,741).
 
+**Cambio del 26/10/2026 (hecho en nf3 por Marcos, autor del fichero):** `generador_corpus_sintetico.py` añade la columna
+`nivel_ruido` a `corpus_meta.csv` (`alto` en Deixis, `medio` en el resto; punto 5 de la llamada). Es un valor derivado de la
+competencia, sin tiradas aleatorias: `corpus_train.csv` sale idéntico byte a byte con las semillas 42, 7 y 123, y
+`corpus_meta.csv` solo gana la columna. Este cambio todavía no está en el repo de Marcos: se lleva allí con la entrega
+(rama `entrega-nf3`), y hasta entonces este fichero es la versión de referencia.
+
 Cualquier cambio se hace fuera de estos ficheros (adaptadores como `src/app/ml_config.py`)
 para poder reabsorber futuras versiones de Marcos sin conflictos.
 Ver `AUTORIA.md` en la raíz del repositorio.
