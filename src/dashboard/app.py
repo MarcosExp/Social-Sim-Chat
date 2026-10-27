@@ -145,7 +145,7 @@ with tab_alumno:
             for e, n in zip(ses["etiqueta_predicha"], ses["sesion_num"])
         ]
         if ses["es_estancamiento_operacional"].fillna(False).astype(bool).any():
-            st.warning("Alerta operacional: 3 sesiones consecutivas predichas como estancamiento.")
+            st.warning("Alerta operacional: 3 sesiones consecutivas predichas como no-progreso (estancamiento o regresión).")
         fig = go.Figure()
         for col, nombre in METRICAS.items():
             v = ses[col].astype(float)
