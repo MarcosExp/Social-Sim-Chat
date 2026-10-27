@@ -21,6 +21,6 @@ competencia, sin tiradas aleatorias: `corpus_train.csv` sale idéntico byte a by
 `corpus_meta.csv` solo gana la columna. Este cambio todavía no está en el repo de Marcos: se lleva allí con la entrega
 (rama `entrega-nf3`), y hasta entonces este fichero es la versión de referencia.
 
-Cualquier cambio se hace fuera de estos ficheros (adaptadores como `src/app/ml_config.py`)
-para poder reabsorber futuras versiones de Marcos sin conflictos.
+Salvo el cambio de `nivel_ruido` de arriba, cualquier cambio se hace fuera de estos ficheros (adaptadores como
+`src/app/ml_config.py`) para poder reabsorber futuras versiones de Marcos sin conflictos.
 Ver `AUTORIA.md` en la raíz del repositorio.

@@ -227,8 +227,8 @@ with tab_conv:
             fila = sint_alumno[sint_alumno["sesion_num"] == n].iloc[0]
             cols = ["sesion_num", "competencia", "aMLU", "latencia_pragmatica_ms", "IRC_pct", "PEPE", "pct_DET", "etiqueta_real_disenada"]
             st.dataframe(fila[[c for c in cols if c in fila.index]].astype(str).to_frame("valor"), width="stretch")   # mezcla texto y números: Arrow no la admite sin convertir
-            st.info("Las sesiones sintéticas solo tienen métricas por sesión: no hay turnos de conversación "
-                    "(`generar_turnos.py` está pendiente). Los turnos de las sesiones reales están en la pestaña «Sesiones reales».")
+            st.info("Aquí se muestran las métricas por sesión. Los turnos sintéticos (`generar_turnos.py`) están en la base de datos, "
+                    "pero este panel no los muestra. Los turnos de las sesiones reales están en la pestaña «Sesiones reales».")
 
 # ----------------------------------------------------------- Sesiones reales
 with tab_real:

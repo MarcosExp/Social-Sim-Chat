@@ -1,10 +1,11 @@
 ﻿# Comprueba el stack de SOCIAL-SIM Chat. Ejecutar desde la raiz del repo:
 #   powershell -ExecutionPolicy Bypass -File scripts\comprobar-stack.ps1
-#   Opcional: -EsperadoTurnData "208|38" exige ese recuento exacto (filas|conversaciones) de la vista turn_data;
-#   sin el, basta con que la vista sea accesible (0|0 es normal en una instalacion nueva).
-#   El recuento es de TU base de datos, no del repo: cambia cuando se crean conversaciones o cuando el generador de turnos
-#   (migracion 013) carga turnos sinteticos. Ejecuta el script sin el parametro, lee el valor real y pasalo solo si cuadra
-#   con lo que esperabas; no lo guardes en ficheros compartidos.
+#   Opcional: -EsperadoTurnData "7875|1500" exige ese recuento exacto (filas|conversaciones) de la vista turn_data;
+#   sin el, basta con que la vista sea accesible.
+#   El recuento es de TU base de datos, no del repo. Incluye los turnos sinteticos que carga make seed (generar_turnos.py,
+#   migracion 013): con la semilla por defecto y sin conversaciones reales son 7875 filas en 1500 conversaciones, y cada
+#   conversacion real suma las suyas; 0|0 solo si aun no se ha cargado el corpus. Ejecuta el script sin el parametro, lee
+#   el valor real y pasalo solo si cuadra con lo que esperabas; no lo guardes en ficheros compartidos.
 param([string]$EsperadoTurnData = "")
 $ErrorActionPreference = "Continue"
 $compose = "environment/docker-compose.yml"
@@ -79,8 +80,8 @@ Resultado ($null -ne $pg -and $pg.disponible -eq $false) "puerta de prediccion r
 
 Write-Host "`n== Base de datos ==" -ForegroundColor Cyan
 $v = Sql "SELECT count(*) || '|' || count(DISTINCT conversacion_id) FROM turn_data;"
-if ($EsperadoTurnData) { Resultado ($v.Trim() -eq $EsperadoTurnData) "turn_data = $v (esperado $EsperadoTurnData)" "Aplica 009, 010 y 011; si has hecho mas conversaciones el recuento sera mayor" }
-else { Resultado ($v.Trim() -match '^\d+\|\d+$') "vista turn_data accesible (filas|conversaciones = $v; 0|0 es normal en una instalacion nueva)" "Aplica 009, 010 y 011" }
+if ($EsperadoTurnData) { Resultado ($v.Trim() -eq $EsperadoTurnData) "turn_data = $v (esperado $EsperadoTurnData)" "Aplica 009, 010 y 011; tras make seed son 7875|1500 mas las conversaciones reales que hayas hecho" }
+else { Resultado ($v.Trim() -match '^\d+\|\d+$') "vista turn_data accesible (filas|conversaciones = $v; tras make seed son 7875|1500 mas las conversaciones reales; 0|0 si aun no has cargado el corpus)" "Aplica 009, 010 y 011" }
 $t = Sql "SELECT count(*) FROM information_schema.columns WHERE table_name='session_data' AND column_name='turnos';"
 Resultado ($t.Trim() -eq "0") "session_data sin columna turnos (migracion 012)" "Aplica 012_quitar_turnos_jsonb.sql"
 $k = Sql "SELECT count(*) FROM pg_trigger WHERE tgname='session_data_mismo_origen';"
