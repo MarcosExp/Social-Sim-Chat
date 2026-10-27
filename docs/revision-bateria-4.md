@@ -1,7 +1,7 @@
 # Revisión de la batería 4 (examen a ciegas del modo simulado)
 
 Respuestas y etiquetas escritas por **Claude Sonnet 5.5** el 25/10/2026, **antes** de medir el modo simulado y sin consultar su léxico ni sus reglas (`src/app/simulado.py`). Se midió **una sola vez** con las reglas congeladas (commit `bf2202e`, versión `simulado-2026-10-25+f2e4c7bb`): 21/26 buenas con 2 y 1/52 falsos 2 (`docs/modo-simulado.md`).
-Las etiquetas son una **propuesta sin revisar**. Quien las revise debe ser una persona distinta de quien escribió las reglas.
+Las etiquetas eran una propuesta de la IA; las revisó Marcos el 27/10/2026 (ver más abajo), una persona distinta de quien escribió las reglas.
 
 Cómo revisar: en cada fila, marca si estás de acuerdo con `esperado`; si no, escribe la nota que pondrías. Luego se corrige `src/tests/data/bateria_valoracion_4.json` (campo `esperado`) y se pone `revisada_por_humano: true`. Si cambia alguna etiqueta, se vuelve a medir (`LLM_PROVIDER=simulado python -m scripts.bateria_valoracion --bateria 4 --historial sin`) y se anota la cifra nueva junto a la de hoy; **no se cambian las reglas para que la cifra suba**. Esta hoja también sirve para medir la batería con el LLM real (`docs/adr/ADR-004_puntuacion_012_solo_llm.md`).
 
