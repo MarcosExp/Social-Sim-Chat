@@ -79,12 +79,13 @@ Cómo leerlo:
 - Con 26 respuestas buenas y 52 malas el margen es amplio. Intervalo de confianza del 95 % (Wilson): buenas 62–91 %, falsos 2
   0,3–10 %. Que cumpla los umbrales de regresión del LLM (≤ 3 falsos 2 y ≥ 21 buenas) en esta batería no demuestra que los cumpla siempre:
   la batería 3 afinada **no** los cumple (5 falsos 2).
-- Referencia del LLM con guarda (`src/scripts/bateria_valoracion.py`, 12/10/2026): batería 3 con 0-1 falsos 2 de 52 y 23/26 buenas (etiquetas anteriores a la revisión del 27/10/2026; la batería 3 tiene ahora 23 buenas y 53 malas y falta remedir).
+- Referencia del LLM con guarda (`src/scripts/bateria_valoracion.py`, 12/10/2026): batería 3 con 0-1 falsos 2 de 52 y 23/26 buenas (etiquetas anteriores a la revisión del 27/10/2026; la batería 3 tiene ahora 23 buenas y 53 malas: con ellas, el LLM real dio el 27/10/2026 63/69 buenas con 2 en tres pasadas, 21/23 por pasada, y 0/159 falsos 2).
   La batería 4 se midió con el LLM real el 25/10/2026 (`qwen3:14b` + guarda, Ollama 0.40.11, 3 repeticiones, GPU de Álvaro, código de
   las seis PR integradas): **26/26 buenas** y falsos 2 en **2/52 por pasada con historial** (6/156) y en **8/156 sin él**; sobre 1 en
   0/156 con historial y 1/156 sin él; fronterizas aceptables 64/78 y 68/78. Frente al modo simulado (21/26 y 1/52), el LLM real
   acierta más buenas y deja pasar algún falso 2 más. Las repeticiones casi no aportan información: fallan los mismos casos las tres
   veces (los 6 falsos 2 con historial son 2 respuestas distintas de las 52 malas), así que la muestra efectiva es de 26 buenas y 52 malas.
+  Repetida el 27/10/2026 con las etiquetas revisadas (mismo modelo y mismo evaluador, `main` en `cb12423`): 78/78 buenas y falsos 2 en 5/156 con historial y 6/156 sin él; los falsos 2 son otra vez las mismas dos respuestas.
 - Las etiquetas de las baterías 3 y 4 las revisó una persona, Marcos, el 27/10/2026, con ayuda de Claude, que propuso los cambios (`revisada_por_humano: true`; 16 etiquetas cambiadas; no es la anotación de un terapeuta; hojas de revisión en
   [`revision-bateria-3.md`](revision-bateria-3.md) y [`revision-bateria-4.md`](revision-bateria-4.md)).
 - La batería 4 la escribió quien también escribió las reglas (Claude), sin mirar el léxico, pero conociendo el tipo de sistema.

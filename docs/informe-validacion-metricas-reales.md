@@ -283,7 +283,7 @@ Con %DET el recall supera 0,65 en 4/5; sin %DET en 0/5.
 | Prompt **p2**: paráfrasis y sinónimos valen; regla de reciprocidad solo en «Preguntas recíprocas»; el 0 ante la duda solo si no encaja | `3d486e4` |
 | Prompt **p3**: repetir o reformular la figura sin explicarla, o señalar una persona/lugar/momento distinto, vale 0 | `47f1e8a` |
 
-La batería 3 la escribió otra familia de modelo sin ver el prompt ni las baterías 1-2. Se midió **dos veces** (línea base con p1 y examen final con p3) y **no se miraron sus fallos individuales**. Sus etiquetas las revisó Marcos el 27/10/2026, con ayuda de Claude (15 cambiadas: ahora son 23 buenas y 53 malas, antes 26 y 52), **después** de todas las mediciones de este apartado, que usan las etiquetas anteriores. Hay que volver a medir con `qwen3:14b` para comparar con la batería revisada.
+La batería 3 la escribió otra familia de modelo sin ver el prompt ni las baterías 1-2. Se midió **dos veces** (línea base con p1 y examen final con p3) y **no se miraron sus fallos individuales**. Sus etiquetas las revisó Marcos el 27/10/2026, con ayuda de Claude (15 cambiadas: ahora son 23 buenas y 53 malas, antes 26 y 52), **después** de todas las mediciones de este apartado, que usan las etiquetas anteriores y se dejan como están. Se volvió a medir con `qwen3:14b` el 27/10/2026 con las etiquetas revisadas: batería 3, 63/69 buenas con 2 (91,3 %) y 0/159 falsos 2, con y sin historial; batería 4, 78/78 y 5/156 (con historial) o 6/156 (sin él); cifras completas en [ADR-004](adr/ADR-004_puntuacion_012_solo_llm.md).
 
 **Resultados** (3 repeticiones, con historial):
 
