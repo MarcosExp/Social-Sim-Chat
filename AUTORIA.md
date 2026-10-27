@@ -18,7 +18,9 @@ La única modificación hecha en este repositorio es de Marcos: `generador_corpu
 - Backend `src/app/` (API, conversación con Ollama, métricas reales, autenticación, correcciones), migraciones 002→013,
   dashboard `src/dashboard/`, chat `src/app/static/chat/`, scripts de `src/scripts/` salvo los heredados, tests `src/tests/`,
   `environment/`, `scripts/`, `Makefile` y la documentación de `docs/` (salvo los JSON de validación).
-- Desarrollado con ayuda de Claude (Anthropic) como asistente de programación; los commits llevan esa atribución.
+- Reparto con la IA, según Álvaro: el marco conceptual (su TFM de 2020, más abajo), la especificación, las decisiones y la revisión de cada
+  cambio son suyos; el desarrollo (código, tests y documentación técnica) lo aportó Claude (Anthropic) con Claude Code a partir de sus
+  indicaciones. Los commits llevan esa atribución.
 - **Historial de Git.** Los commits cuyo autor Git es «Claude» (`Claude <noreply@anthropic.com>`) los hizo y subió Claude Code a partir de
   propuestas de Álvaro, que decidió qué se hacía y ordenó cada fusión; llevan la línea `Co-Authored-By`. Las fusiones de las
   pull requests salen de la cuenta de Álvaro (`cCoolBoox`) y los commits de Marcos llevan su nombre. Por eso `git shortlog` no
@@ -39,7 +41,7 @@ el apartado de reparto de trabajo de la memoria.
 
 Motivo del cambio, según Álvaro (pendiente de que Marcos lo confirme): Álvaro había avanzado en paralelo en el desarrollo de
 la aplicación con una IA local, de modo que cuando se repartió el trabajo del NF3 ya tenía datos y frontend, y la plataforma
-pasó a su lado. El uso de esa IA local en el desarrollo paralelo se declara como uso de IA, igual que el de Claude.
+pasó a su lado. Ese desarrollo paralelo también contó con IA, que se declara en el apartado «Uso de inteligencia artificial».
 
 ## Material de equipo (a confirmar entre los dos)
 
@@ -58,7 +60,7 @@ en este repositorio. En `docs/`, «TFM» a secas designa la documentación del p
 
 ## Uso de inteligencia artificial
 Declarado según las instrucciones de entrega del módulo (el uso de IA está permitido y debe indicarse dónde y cómo):
-- **Claude (Anthropic), como asistente de programación** con Claude Code: escritura y revisión de código del backend, dashboard, migraciones, scripts y tests (Álvaro), depuración, refactorizaciones y generación de la documentación técnica (ADR, contratos de API, informes de validación, este repositorio). **La memoria (`fase2_grupo12.pdf`) también se ha redactado con ayuda de Claude** a partir del repositorio y de los informes de medición. El autor ejecutó y verificó el resultado (tests y pruebas manuales en su entorno); el recuento de pruebas lo da `pytest` (`make test`) y no se copia en el README.
+- **Claude (Anthropic), con Claude Code, aportó el desarrollo**: escritura y revisión de código del backend, dashboard, migraciones, scripts y tests (Álvaro), depuración, refactorizaciones y generación de la documentación técnica (ADR, contratos de API, informes de validación, este repositorio). **La memoria (`fase2_grupo12.pdf`) también se ha redactado con ayuda de Claude** a partir del repositorio y de los informes de medición. El autor ejecutó y verificó el resultado (tests y pruebas manuales en su entorno); el recuento de pruebas lo da `pytest` (`make test`) y no se copia en el README.
 - **LLM local (Ollama, modelo `qwen3:14b`) como parte del producto**, no como herramienta de desarrollo: genera la variación de frase y la valoración 0/1/2 del turno del menor durante la conversación.
 - **Modo simulado y baterías de validación** (herramientas de desarrollo y prueba, no IA dentro del producto): las reglas de `src/app/simulado.py` (un LLM falso sin modelo) y la batería 4 (`src/tests/data/bateria_valoracion_4.json`, 104 respuestas) las escribió Claude Sonnet 5.5 con Claude Code, la batería sin consultar las reglas y antes de medirlas. La batería 3 la generó `gpt-oss:20b` (Ollama, en local). Las etiquetas de ambas **no las ha revisado ninguna persona** (hojas en `docs/revision-bateria-3.md` y `docs/revision-bateria-4.md`). Método y límites: `docs/adr/ADR-004_puntuacion_012_solo_llm.md`.
 - **Código de Marcos** (`src/generador/`, `src/ml/` y `src/scripts/generar_turnos.py`): su uso de IA, si lo hubo, lo declara él en su parte de la memoria.
