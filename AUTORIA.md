@@ -17,6 +17,10 @@ Origen: `MarcosExp/Social-Sim-Chat`, PR #2, copiado el 12/10/2026 (commit `5d85e
   dashboard `src/dashboard/`, chat `src/app/static/chat/`, scripts de `src/scripts/` salvo los heredados, tests `src/tests/`,
   `environment/`, `scripts/`, `Makefile` y la documentación de `docs/` (salvo los JSON de validación).
 - Desarrollado con ayuda de Claude (Anthropic) como asistente de programación; los commits llevan esa atribución.
+- **Historial de Git.** Los commits cuyo autor Git es «Claude» (`Claude <noreply@anthropic.com>`) los hizo y subió Claude Code a partir de
+  propuestas de Álvaro, que decidió qué se hacía y ordenó cada fusión; llevan la línea `Co-Authored-By`. Las fusiones de las
+  pull requests salen de la cuenta de Álvaro (`cCoolBoox`) y los commits de Marcos llevan su nombre. Por eso `git shortlog` no
+  dice por sí solo quién decidió cada cambio: para eso sirve este fichero y el apartado de reparto de trabajo de la memoria.
 
 ## Material de equipo (a confirmar entre los dos)
 
