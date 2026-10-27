@@ -27,6 +27,7 @@ Módulo C088 · Curso de Especialización en IA y Big Data (iFP) · Grupo 12: Á
 - **Predicción sobre sesiones reales:** no se hace. `GET /students/{id}/prediccion` devuelve `disponible:false` con los motivos (hacen falta 4 sesiones reales, `pct_DET` es provisional, el evaluador del 0/1/2 no está validado).
 - **Autenticación:** una clave compartida (`X-API-Key`) y un nombre de autor (`X-Terapeuta`) sin verificar. No hay usuarios ni roles.
 - **Silencios** del menor no se registran; la **nota clínica no está cifrada**; no hay predicción en línea.
+- **Del diseño del NF2 sin hacer:** el baseline neurotípico simulado del dashboard (historia 8, que el plan del NF2 situaba después del NF3), la recomendación adaptativa para la siguiente sesión y el límite de duración de cada sesión. El límite de sesiones por semana sí existe, pero apagado por defecto (`MAX_SESIONES_SEMANA`, [`docs/api-conversacion.md`](docs/api-conversacion.md)).
 - **Margen estrecho del clasificador:** cumple los umbrales (F1-macro ≥ 0,75, recall y precisión de estancamiento ≥ 0,65) con la semilla por defecto, pero el recall de estancamiento queda cerca del límite y varía con la semilla (réplica de 10 semillas en `docs/validacion/`).
 - El evaluador 0/1/2 (LLM) se validó con baterías propias, no con conversaciones reales anotadas: [`docs/informe-validacion-metricas-reales.md`](docs/informe-validacion-metricas-reales.md).
 - Las fórmulas de las métricas reales son una propuesta explícita y revisable: [`docs/metricas-reales.md`](docs/metricas-reales.md).
@@ -73,7 +74,7 @@ src/generador/ src/ml/   corpus sintético y features antifuga (Marcos; ver src/
 src/scripts/   seed_corpus, train_classifier, metricas_reales, bateria_valoracion, smoke_conversacion, mock_api_chat
 src/tests/     pytest (contrato, ER v2, dashboard, límites, métricas, chat estático)
 docs/          ER v2 (anotado, contrastado con el esquema real), arquitectura v2, ADR-001/002/003 (docs/adr/), contrato de las APIs,
-               métricas reales, informe de validación, informes de Marcos y réplica
+               métricas reales, informe de validación, escalado a Kafka y Spark (solo diseño), informes de Marcos y réplica
 scripts/       instalación y comprobación (setup-local.*, test-local.ps1, comprobar-stack.ps1)
 ```
 
