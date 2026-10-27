@@ -77,7 +77,7 @@ Cómo leerlo:
 - Con 26 respuestas buenas y 52 malas el margen es amplio. Intervalo de confianza del 95 % (Wilson): buenas 62–91 %, falsos 2
   0,3–10 %. Que cumpla los umbrales de regresión del LLM (≤ 3 falsos 2 y ≥ 21 buenas) en esta batería no demuestra que los cumpla siempre:
   la batería 3 afinada **no** los cumple (5 falsos 2).
-- Referencia del LLM con guarda (`scripts/bateria_valoracion.py`, 12/10/2026): batería 3 con 0-1 falsos 2 de 52 y 23/26 buenas.
+- Referencia del LLM con guarda (`src/scripts/bateria_valoracion.py`, 12/10/2026): batería 3 con 0-1 falsos 2 de 52 y 23/26 buenas.
   La batería 4 se midió con el LLM real el 25/10/2026 (`qwen3:14b` + guarda, Ollama 0.40.11, 3 repeticiones, GPU de Álvaro, código de
   las seis PR integradas): **26/26 buenas** y falsos 2 en **2/52 por pasada con historial** (6/156) y en **8/156 sin él**; sobre 1 en
   0/156 con historial y 1/156 sin él; fronterizas aceptables 64/78 y 68/78. Frente al modo simulado (21/26 y 1/52), el LLM real

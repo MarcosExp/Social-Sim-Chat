@@ -22,7 +22,7 @@ La única modificación hecha en este repositorio es de Marcos: `generador_corpu
 - **Historial de Git.** Los commits cuyo autor Git es «Claude» (`Claude <noreply@anthropic.com>`) los hizo y subió Claude Code a partir de
   propuestas de Álvaro, que decidió qué se hacía y ordenó cada fusión; llevan la línea `Co-Authored-By`. Las fusiones de las
   pull requests salen de la cuenta de Álvaro (`cCoolBoox`) y los commits de Marcos llevan su nombre. Por eso `git shortlog` no
-  dice por sí solo quién decidió cada cambio: para eso sirve este fichero y el apartado de reparto de trabajo de la memoria.
+  dice por sí solo quién decidió cada cambio: para eso sirve este fichero y el apartado de reparto de trabajo de la memoria. Desde el 27/10/2026 los commits que hace Claude Code se firman con el nombre de Álvaro y conservan la línea `Co-Authored-By: Claude`, de modo que el uso de IA sigue constando en cada uno; el historial anterior no se ha reescrito.
 
 ## Material de equipo (a confirmar entre los dos)
 

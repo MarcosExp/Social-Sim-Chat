@@ -72,7 +72,7 @@ src/generador/ src/ml/   corpus sintético y features antifuga (Marcos; ver src/
 src/scripts/   seed_corpus, train_classifier, metricas_reales, bateria_valoracion, smoke_conversacion, mock_api_chat
 src/tests/     pytest (contrato, ER v2, dashboard, límites, métricas, chat estático)
 docs/          ER v2 (anotado, contrastado con el esquema real), arquitectura v2, ADR-001/002/003 (docs/adr/), contrato de las APIs,
-               métricas reales, informe de validación, informes de Marcos y réplica
+               métricas reales, informe de validación, escalado a Kafka y Spark (solo diseño), informes de Marcos y réplica
 scripts/       instalación y comprobación (setup-local.*, test-local.ps1, comprobar-stack.ps1)
 ```
 
