@@ -37,7 +37,7 @@ Módulo C088 · Curso de Especialización en IA y Big Data (iFP) · Grupo 12: Á
 Requisitos: Docker (con Compose v2). Linux/macOS/WSL: `make`. Windows sin make: ver más abajo.
 
 ```bash
-git clone https://github.com/cCoolBoox/social-sim-chat-nf3 && cd social-sim-chat-nf3
+git clone https://github.com/MarcosExp/Social-Sim-Chat && cd Social-Sim-Chat
 make up       # crea environment/.env si falta, construye y levanta Postgres + backend + dashboard
 make seed     # genera el corpus sintético (100 alumnos, 1500 sesiones) y lo carga en Postgres
 make train    # entrena el clasificador y escribe las predicciones (~30 s)
