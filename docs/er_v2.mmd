@@ -1,4 +1,5 @@
 erDiagram
+%% No se dibujan las columnas de auditoria: created_at (student_profile_sim, session_data, conversacion y conversacion_turno) y updated_at (conversacion).
     student_profile_sim ||--o{ session_data : "tiene sesiones"
     student_profile_sim ||--o{ conversacion : "mantiene"
     conversacion ||--o| session_data : "origina (obligatorio si origen=real; opcional en sinteticas, mismo origen, 013)"
@@ -32,7 +33,7 @@ erDiagram
         text competencia "para el dashboard, no es feature"
         text personaje
         real amlu "feature"
-        real latencia_pragmatica_ms "feature"
+        int latencia_pragmatica_ms "feature"
         real irc_pct "feature"
         real pepe "feature"
         real pct_det "feature"
