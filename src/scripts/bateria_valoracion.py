@@ -46,14 +46,15 @@ DATOS = Path(__file__).resolve().parent.parent / "tests" / "data"
 # Referencia 2026-10-12 con el prompt p3 + guarda (por pasada, 3 repeticiones): batería 1 → 1/75 falsos 2 y 13/13 buenas;
 # batería 2 → 1/71 y 24/27; batería 3 → 0-1/52 y 23/26. Los umbrales dejan margen por el ruido del modelo (temperatura 0,2).
 # Referencia 2026-10-25 (código de las seis PR, mismo modelo, 3 repeticiones, con historial): batería 3 → 0/52 y 23/26; batería 4 → 2/52 y 26/26.
-# Las referencias de la batería 3 son anteriores a la revisión del 27/10/2026 (entonces 26 buenas y 52 malas; ahora 23 y 53): sus umbrales con el LLM real están sin remedir.
+# Referencia 2026-10-27 (etiquetas revisadas por una persona, `main` en cb12423, mismo modelo, 3 repeticiones, con y sin historial): batería 3 → 0/53 falsos 2 y 21/23 buenas por pasada;
+# batería 4 → 2/52 por pasada (5/156 con historial, 6/156 sin él) y 26/26. Las referencias anteriores de la batería 3 usan las etiquetas previas (26 buenas y 52 malas).
 # Los umbrales y las referencias son de `qwen3:14b`: con otro modelo hay que remedirlos. El 26/10/2026, `openai` por TabbyAPI con Qwen3-Coder-30B-A3B
 # (EXL3 3,34 bpw) dio de media 6,3 falsos 2 por pasada en la batería 3 con historial (19/156) y 2,7 en la 4 (8/156), y el script salió con código 1.
 UMBRALES = {
     "1": {"max_falsos2": 3, "min_buenas": 12},
     "2": {"max_falsos2": 3, "min_buenas": 22},
-    "3": {"max_falsos2": 3, "min_buenas": 21},
-    "4": {"max_falsos2": 3, "min_buenas": 21},       # medida con el LLM real el 25/10/2026 (2-3 falsos 2 y 26 buenas por pasada): cabe, se deja igual
+    "3": {"max_falsos2": 3, "min_buenas": 19},       # 27/10/2026: con las etiquetas revisadas hay 23 buenas y el LLM da 21 por pasada; 21 no dejaba margen por el ruido (temperatura 0,2). 19/23 (82,6 %) conserva el margen de 2 de antes y coincide con el objetivo del informe (≥ 82 %)
+    "4": {"max_falsos2": 3, "min_buenas": 21},       # medida con el LLM real el 25/10 y el 27/10/2026 (2 falsos 2 y 26 buenas por pasada): cabe, se deja igual
 }
 # Con `LLM_PROVIDER=simulado` (LLM falso por reglas, docs/modo-simulado.md) se aplican ESTOS, no los del LLM: son los resultados de
 # hoy (también de NO EMPEORAR, no objetivos). La batería 3 queda por encima de los umbrales del LLM (5 falsos 2 > 3) y eso no
