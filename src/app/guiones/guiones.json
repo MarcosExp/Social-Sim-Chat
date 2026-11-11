@@ -1,0 +1,89 @@
+{
+  "version": "2026-10-12",
+  "fuente": "Guiones_Dialogo.md (NF1/Entregables del repo académico) (transcripción literal; cambiar el texto aquí, no en el código)",
+  "personajes": {
+    "Mona": {"tramo": "6-8", "estilo": "vocabulario simple, frases cortas, tono cálido y paciente"},
+    "Nico": {"tramo": "8-10", "estilo": "vocabulario intermedio, frases cortas, situaciones muy concretas y visuales"},
+    "Teo": {"tramo": "10-12", "estilo": "vocabulario algo más elaborado, tono cercano de amigo mayor, más directo"}
+  },
+  "apertura": {
+    "a1": "¡Hola {nombre_usuario}! Qué bien verte por aquí otra vez. ¿Cómo estás hoy?",
+    "a2": "¿Te apetece que juguemos un poco antes de empezar?",
+    "rama_2A": "Vale, no pasa nada. ¿Prefieres que hablemos de otra cosa, o pasamos ya a nuestro juego de palabras?",
+    "rama_2B": "¡Genial! Vamos entonces con nuestro juego de palabras de siempre.",
+    "a3": "¿Ha pasado algo hoy que te gustaría contarme?",
+    "rama_3A": "Qué interesante, gracias por contármelo.",
+    "rama_3B": "Vale, pues cuando quieras me lo cuentas. Ahora vamos con nuestro juego.",
+    "cierre": "Venga, ¡vamos a practicar un poco juntos!"
+  },
+  "competencias": {
+    "Metáfora": {
+      "personaje": "Mona",
+      "objetivo": "Reconocer que una expresión no se refiere a su significado literal.",
+      "turnos": [
+        {"id": "M1", "frase": "¡Estoy que exploto de contenta hoy!",
+         "ayuda": "Mona no va a explotar de verdad — quiere decir que está MUY, muy contenta. ¿Se te ocurre otra forma de decir que alguien está muy feliz?",
+         "correcta": "Que está muy contenta / muy feliz"},
+        {"id": "M2", "frase": "Hoy tengo mariposas en el estómago.",
+         "ayuda": "Mona no tiene mariposas de verdad dentro. Quiere decir que está un poco nerviosa. ¿Tú alguna vez has sentido eso antes de algo importante?",
+         "correcta": "Que está nerviosa"},
+        {"id": "M3", "frase": "Este ejercicio es pan comido.",
+         "ayuda": "No hay pan de verdad — Mona quiere decir que el ejercicio es muy fácil para ella. ¿Qué palabra usarías tú para decir que algo es fácil?",
+         "correcta": "Que es muy fácil"},
+        {"id": "M4", "frase": "Se me heló la sangre cuando vi la sorpresa.",
+         "ayuda": "La sangre de Mona sigue calentita — quiere decir que se asustó mucho de repente. ¿Qué otra palabra usarías para decir que alguien se asustó mucho?",
+         "correcta": "Que se asustó / se sorprendió mucho"}
+      ],
+      "cierre": "Hoy hemos hablado de frases que no quieren decir exactamente lo que parece. ¡Lo has hecho genial, nos vemos la próxima vez!"
+    },
+    "Sarcasmo": {
+      "personaje": "Nico",
+      "objetivo": "Identificar cuándo el tono o el contexto invierte el significado literal de una frase.",
+      "turnos": [
+        {"id": "S1", "contexto": "Nico deja caer su bocadillo al suelo.", "frase": "¡Genial, justo lo que necesitaba hoy!",
+         "ayuda": "Piensa: ¿a Nico le gusta que se le caiga la comida? Cuando decimos lo contrario de lo que sentimos, a veces es sarcasmo. ¿Cómo crees que se siente Nico en realidad?",
+         "correcta": "Que está molesto / fastidiado, no contento"},
+        {"id": "S2", "contexto": "Después de perder un juego.", "frase": "Sí, se me da fenomenal esto.",
+         "ayuda": "¿Nico ha ganado el juego? Cuando alguien pierde y dice que 'se le da fenomenal', normalmente está siendo irónico. ¿Qué crees que siente de verdad?",
+         "correcta": "Que está frustrado, no que se le dé bien"},
+        {"id": "S3", "contexto": "Llueve el día de la excursión.", "frase": "Qué suerte la nuestra, ¿eh?",
+         "ayuda": "¿Es buena suerte que llueva el día de la excursión? Nico lo dice al revés porque está un poco decepcionado. ¿Cómo dirías tú lo que siente?",
+         "correcta": "Que tiene mala suerte / está decepcionado"}
+      ],
+      "cierre": "El sarcasmo es de las cosas más difíciles de pillar, ¡y hoy has estado muy atento! Seguimos la próxima sesión."
+    },
+    "Preguntas recíprocas": {
+      "personaje": "Teo",
+      "objetivo": "Sostener el turno conversacional devolviendo una pregunta o compartiendo algo propio (IRC).",
+      "turnos": [
+        {"id": "P1", "frase": "Hoy he jugado al fútbol en el recreo, ¡me ha encantado! ¿Y tú, qué has hecho?",
+         "ayuda": "Te he contado algo mío — ahora te toca a ti contarme algo, o preguntarme algo de vuelta. ¿Qué has hecho tú hoy?",
+         "correcta": "El menor comparte algo propio o pregunta a Teo de vuelta"},
+        {"id": "P2", "frase": "Mi color favorito es el azul. ¿Cuál es el tuyo?",
+         "ayuda": "Te he preguntado por tu color favorito — ¿me lo dices?",
+         "correcta": "El menor responde con su color y, idealmente, pregunta algo a Teo"},
+        {"id": "P3", "frase": "Estoy un poco cansado hoy. ¿Tú cómo estás?",
+         "ayuda": "Te he dicho cómo me siento yo. ¿Y tú, cómo te sientes hoy?",
+         "correcta": "El menor responde sobre su propio estado"}
+      ],
+      "cierre": "Me ha gustado mucho hablar contigo hoy y saber cosas de ti. ¡Hasta la próxima!"
+    },
+    "Deixis": {
+      "personaje": "Mona",
+      "objetivo": "Usar y resolver deícticos (yo/tú, ahora, aquí) cuyo significado depende de quién habla, cuándo y dónde.",
+      "turnos": [
+        {"id": "D1", "frase": "Cuéntame algo que hayas hecho hoy. Recuerda: cuando hablas de ti mismo, dices 'yo'.",
+         "ayuda": "Cuando hablas de ti, se dice 'yo fui', no 'tú fuiste'. ¿Puedes contármelo otra vez empezando por 'Yo...'?",
+         "ayuda_condicion": "el menor invierte el pronombre (p. ej. 'tú fuiste al parque' queriendo decir que fue él)",
+         "correcta": "El menor relata el evento usando correctamente 'yo' para referirse a sí mismo"},
+        {"id": "D2", "frase": "Ahora vamos a jugar a algo. Cuando yo diga 'ya está', paramos. ¿Qué crees que significa 'ahora' en lo que te acabo de decir?",
+         "ayuda": "'Ahora' quiere decir 'en este mismo momento en que hablamos', no mañana ni ayer — es una palabra que cambia según cuándo se dice.",
+         "correcta": "Que es en este momento / ya mismo"},
+        {"id": "D3", "contexto": "Mini-relato.", "frase": "Había una vez un perrito que vivía en una casa. Un día dijo: 'mañana voy a venir aquí a jugar'. ¿A qué lugar se refiere 'aquí'?",
+         "ayuda": "'Aquí' señala el lugar donde está quien habla en ese momento — en el cuento, la casa del perrito. Si yo dijera 'aquí' ahora mismo, ¿a qué me estaría refiriendo?",
+         "correcta": "A la casa del perrito / al sitio donde está él cuando lo dice"}
+      ],
+      "cierre": "Hoy hemos practicado unas palabras que cambian de significado según quién habla, cuándo y dónde. ¡Lo has hecho genial!"
+    }
+  }
+}
