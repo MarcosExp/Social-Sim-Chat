@@ -1,0 +1,6 @@
+# pandas 3.0.5 como en src/requirements.txt (NF2); streamlit 1.56.0 es la primera versión que lo admite (la 1.41.1 fijaba pandas<3).
+streamlit==1.56.0
+plotly==5.24.1
+pandas==3.0.5
+httpx==0.28.1
+tzdata==2024.2

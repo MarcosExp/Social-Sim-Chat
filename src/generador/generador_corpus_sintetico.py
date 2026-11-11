@@ -8,7 +8,7 @@ Genera el corpus sintético de sesiones siguiendo `cambios-generador-corpus.md`
 Salida (dos ficheros, para que los metadatos no puedan usarse por error):
     corpus_train.csv  alumno_id, sesion, 5 métricas, etiqueta
     corpus_meta.csv   alumno_id, competencia, arquetipo, trayectoria,
-                      inicio_cambio, ambiguo, tipo_ambiguo
+                      inicio_cambio, ambiguo, tipo_ambiguo, nivel_ruido
 
 Uso:
     python src/generador/generador_corpus_sintetico.py --config config.yaml \
@@ -145,6 +145,7 @@ def generar_alumno(i: int, cfg: dict, rng: np.random.Generator) -> tuple[list[di
         "inicio_cambio": inicio,
         "ambiguo": ambiguo,
         "tipo_ambiguo": tipo_ambiguo,
+        "nivel_ruido": "alto" if competencia == "Deixis" else "medio",
     }
     return filas, meta
 

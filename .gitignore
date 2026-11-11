@@ -216,3 +216,6 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Modelos entrenados (se regeneran con `make train`)
+src/models/

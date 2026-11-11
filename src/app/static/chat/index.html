@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SOCIAL-SIM Chat · Conversación</title>
+<link rel="stylesheet" href="chat.css">
+</head>
+<body>
+<header class="cabecera">
+  <h1>SOCIAL-SIM Chat</h1>
+  <p class="aviso">Prototipo con datos sintéticos. No usar con menores reales.</p>
+</header>
+
+<main>
+  <!-- Pantalla 1: inicio (la prepara una persona adulta) -->
+  <section id="pantalla-inicio" aria-labelledby="t-inicio">
+    <h2 id="t-inicio">Empezar una conversación</h2>
+    <form id="form-inicio" novalidate>
+      <label for="alumno">Alumno</label>
+      <select id="alumno" required><option value="">Cargando alumnos…</option></select>
+
+      <label for="alias">Nombre que usará el personaje <span class="ayuda">(opcional)</span></label>
+      <input id="alias" type="text" maxlength="60" autocomplete="off">
+
+      <label for="competencia">Competencia <span class="ayuda">(por defecto, la del alumno)</span></label>
+      <select id="competencia">
+        <option value="">La del alumno</option>
+        <option>Metáfora</option>
+        <option>Sarcasmo</option>
+        <option>Preguntas recíprocas</option>
+        <option>Deixis</option>
+      </select>
+
+      <label class="check"><input id="prueba" type="checkbox"> Conversación de prueba (no guarda sesión ni métricas)</label>
+
+      <button id="btn-empezar" type="submit" class="primario">▶ Empezar</button>
+      <p id="error-inicio" class="error" role="alert" hidden></p>
+    </form>
+  </section>
+
+  <!-- Pantalla 2: conversación del menor -->
+  <section id="pantalla-chat" aria-labelledby="t-chat" hidden>
+    <div class="barra">
+      <h2 id="t-chat"><span aria-hidden="true">💬</span> <span id="nombre-personaje">Personaje</span></h2>
+      <span id="etiqueta-competencia" class="etiqueta"></span>
+    </div>
+
+    <ol id="mensajes" class="mensajes" role="log" aria-live="polite" aria-label="Conversación"></ol>
+
+    <p id="estado" class="estado" role="status" aria-live="polite"></p>
+
+    <div id="bloque-error" class="bloque-error" role="alert" hidden>
+      <p id="texto-error"></p>
+      <button id="btn-reintentar" type="button" class="primario">↻ Intentar otra vez</button>
+    </div>
+
+    <form id="form-turno" class="turno" novalidate>
+      <label for="respuesta" class="solo-lectores">Tu respuesta</label>
+      <textarea id="respuesta" rows="2" maxlength="500" placeholder="Escribe aquí tu respuesta" autocomplete="off"></textarea>
+      <div class="fila">
+        <span id="contador" class="contador" aria-live="off">0 / 500</span>
+        <button id="btn-enviar" type="submit" class="primario">➤ Enviar</button>
+      </div>
+    </form>
+
+    <div id="fin" class="fin" hidden>
+      <p><span aria-hidden="true">✅</span> <strong>Hemos terminado por hoy.</strong> ¡Gracias por jugar!</p>
+      <button id="btn-nueva" type="button" class="secundario">Empezar otra conversación</button>
+    </div>
+  </section>
+</main>
+
+<script src="chat.js"></script>
+</body>
+</html>
