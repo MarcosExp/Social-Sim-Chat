@@ -46,7 +46,7 @@ PROVISIONALES = {"pct_DET": "% de turnos con valoración 2; no es el RQA entre s
 RECIPROCAS = "Preguntas recíprocas"
 # Dependen de la valoración 0/1/2 del LLM, cuyo prompt está en revisión (infravalora respuestas buenas y se deja manipular;
 # informe de validación §10.2). Provisionales hasta que el prompt cumpla los objetivos; borrar esta entrada entonces.
-PROVISIONALES_EVALUADOR = {c: "depende de la valoración 0/1/2 del LLM (evaluador p3 sin validar con conversaciones reales ni con la batería 3 revisada)" for c in ("aMLU", "PEPE", "IRC_pct")}
+PROVISIONALES_EVALUADOR = {c: "depende de la valoración 0/1/2 del LLM (evaluador p3 validado solo con baterías propias, sin conversaciones reales ni anotación de un terapeuta)" for c in ("aMLU", "PEPE", "IRC_pct")}
 _PALABRA = re.compile(r"\w+", re.UNICODE)
 
 

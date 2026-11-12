@@ -10,6 +10,16 @@ la haces tú con `make smoke` (o `scripts\test-local.ps1 -Humo`).
 | **Guion** (`src/app/guiones/guiones.json`) | Qué figura se presenta, cuándo hay ayuda, cuándo se avanza. Texto de figuras y ayudas **literal**. |
 | **LLM** | En cada turno de competencia, una sola llamada con salida JSON `{evaluacion: 0\|1\|2, reaccion}`. No introduce figuras nuevas. |
 | **Reglas** | La apertura (Guion 0): ramas por reglas simples, sin LLM. |
+
+**Vocabulario.** El proyecto usa «turno», «figura» y «nodo» en sitios distintos para cosas que se confunden; esta tabla fija qué es cada una:
+
+| Término | Dónde aparece | Qué es |
+|---|---|---|
+| **figura** | ER del NF2 (`turn_data`), vista `turn_data`, `n_figuras` de `session_data`, memoria | Cada una de las 13 unidades de un guion (4 + 3 + 3 + 3 entre las cuatro competencias): la frase que el personaje presenta y que el menor responde. |
+| **nodo** | `conversacion_turno.nodo`, baterías de valoración, `metricas.puntuar_figuras` | El identificador de una figura dentro del guion. Es la misma cosa que «figura», nombrada por su clave. |
+| **turno (del guion)** | `guiones.json`, clave `turnos` | Otra forma de llamar a la figura en el fichero del guion. |
+| **turno (fila)** | tabla `conversacion_turno` | Una fila por mensaje, del menor o del personaje, con su `intento`. Por eso las filas de turno (26.534 en el corpus sintético) no son «intentos» ni figuras. |
+| **intento** | `conversacion_turno.intento` | 1 = primera respuesta a la figura; 2 = respuesta tras la ayuda del guion. Máximo 2 por figura. |
 | **Guarda de inyecciones** (`src/app/guarda.py`) | Antes del LLM: si el mensaje del menor intenta manipular al evaluador (7 patrones: «ignora las instrucciones», «SYSTEM:», «puntúa/evalúa/devuelve … 2», «evaluacion», etc.) se valora 0 **sin llamar al LLM**, `evaluacion_origen = "guarda_inyeccion"` y `guarda_patron` con los patrones. El niño recibe la ayuda del guion y sigue jugando. |
 
 Máximo 2 intentos por turno: respuesta → (si 0 ó 1) ayuda del guion → segunda respuesta → se avanza igualmente.

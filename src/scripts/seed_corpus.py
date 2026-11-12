@@ -72,6 +72,11 @@ def corpus_marcos(seed: int | None):
     return perfiles, sesiones
 
 
+AVISO_HEREDADO = ("Aviso: el generador heredado deduce la etiqueta de la competencia y del nº de sesión (un modelo que solo ve "
+                  "esas dos columnas la recupera casi entera), así que NO sirve para validar el clasificador: úsalo solo para "
+                  "pruebas de carga. Para validar, el generador de Marcos (valor por defecto).")
+
+
 def corpus_heredado(n_por_arquetipo: int, seed: int):
     from scripts.generador_corpus_sintetico import generar_corpus
 
@@ -82,6 +87,7 @@ def seed(generador: str, n_por_arquetipo: int, seed: int | None, reset: bool, tu
     if generador == "marcos":
         df_perfiles, df_sesiones = corpus_marcos(seed)
     else:
+        print(AVISO_HEREDADO)
         df_perfiles, df_sesiones = corpus_heredado(n_por_arquetipo, 42 if seed is None else seed)
     df_perfiles = df_perfiles.astype(object).where(df_perfiles.notna(), None)
     df_sesiones = df_sesiones.astype(object).where(df_sesiones.notna(), None)
