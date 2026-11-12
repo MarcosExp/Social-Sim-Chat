@@ -7,18 +7,28 @@
 <link rel="stylesheet" href="chat.css">
 </head>
 <body>
+<a class="saltar" href="#contenido">Saltar al contenido</a>
 <header class="cabecera">
-  <h1>SOCIAL-SIM Chat</h1>
-  <p class="aviso">Prototipo con datos sintéticos. No usar con menores reales.</p>
+  <div>
+    <h1>SOCIAL-SIM Chat</h1>
+    <p class="aviso">Prototipo con datos sintéticos. No usar con menores reales.</p>
+  </div>
+  <!-- Ajustes de lectura: tamaño de letra y alto contraste. Solo se guardan en este navegador (sin datos del alumno). -->
+  <div class="ajustes" role="group" aria-label="Ajustes de lectura">
+    <button id="btn-letra-menos" type="button" class="ajuste" aria-label="Letra más pequeña">A−</button>
+    <button id="btn-letra-mas" type="button" class="ajuste" aria-label="Letra más grande">A+</button>
+    <button id="btn-contraste" type="button" class="ajuste" aria-pressed="false">Alto contraste</button>
+  </div>
 </header>
+<p id="aviso-ajustes" class="solo-lectores" role="status" aria-live="polite"></p>
 
-<main>
+<main id="contenido" tabindex="-1">
   <!-- Pantalla 1: inicio (la prepara una persona adulta) -->
   <section id="pantalla-inicio" aria-labelledby="t-inicio">
     <h2 id="t-inicio">Empezar una conversación</h2>
     <form id="form-inicio" novalidate>
       <label for="alumno">Alumno</label>
-      <select id="alumno" required><option value="">Cargando alumnos…</option></select>
+      <select id="alumno" required aria-describedby="error-inicio"><option value="">Cargando alumnos…</option></select>
 
       <label for="alias">Nombre que usará el personaje <span class="ayuda">(opcional)</span></label>
       <input id="alias" type="text" maxlength="60" autocomplete="off">
@@ -57,7 +67,7 @@
 
     <form id="form-turno" class="turno" novalidate>
       <label for="respuesta" class="solo-lectores">Tu respuesta</label>
-      <textarea id="respuesta" rows="2" maxlength="500" placeholder="Escribe aquí tu respuesta" autocomplete="off"></textarea>
+      <textarea id="respuesta" rows="2" maxlength="500" placeholder="Escribe aquí tu respuesta" autocomplete="off" aria-describedby="estado contador"></textarea>
       <div class="fila">
         <span id="contador" class="contador" aria-live="off">0 / 500</span>
         <button id="btn-enviar" type="submit" class="primario">➤ Enviar</button>
