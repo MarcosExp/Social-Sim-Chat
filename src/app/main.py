@@ -7,6 +7,7 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
 from app.config import settings
+from app.errores import registrar as registrar_errores
 from app.llm_client import precalentar_llm
 from app.routers import conversaciones, correcciones, health, modelo, predicciones, resumen, sessions, students
 from app.seguridad import comprobar_configuracion
@@ -38,6 +39,8 @@ app = FastAPI(
     ),
     version="0.1.0",
 )
+
+registrar_errores(app)
 
 app.include_router(health.router)
 app.include_router(students.router)
