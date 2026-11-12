@@ -1,11 +1,35 @@
+import asyncio
+import logging
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
+from app.config import settings
+from app.llm_client import precalentar_llm
 from app.routers import conversaciones, correcciones, health, modelo, predicciones, resumen, sessions, students
+from app.seguridad import comprobar_configuracion
+
+log = logging.getLogger("uvicorn.error")
+
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    # 1. Seguridad: con ENV distinto de «development» no se arranca con la clave vacía o la de desarrollo (lanza antes de servir nada).
+    for aviso in comprobar_configuracion(settings.env, settings.api_key_terapeuta):
+        log.warning(aviso)
+    # 2. Rendimiento: precalienta el modelo en segundo plano (no retrasa el arranque; ver llm_client.precalentar_llm).
+    tarea = asyncio.create_task(precalentar_llm()) if settings.llm_precalentar and not settings.llm_simulado else None
+    try:
+        yield
+    finally:
+        if tarea is not None and not tarea.done():
+            tarea.cancel()
+
 
 app = FastAPI(
+    lifespan=lifespan,
     title="SOCIAL-SIM Chat API",
     description=(
         "Backend del entrenador conversacional y learning analytics "

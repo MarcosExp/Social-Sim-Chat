@@ -129,6 +129,7 @@ class HealthOut(BaseModel):
     llm: str                                   # "ok" o mensaje accionable en español
     llm_model: str | None = None
     llm_modelo_disponible: bool | None = None
+    llm_precalentamiento: str | None = None    # «ok (N ms)», «en curso», «error: ...» o «no aplica» (modo simulado o desactivado)
 
 
 # ------------------------------------------------------------------ conversaciones

@@ -21,6 +21,13 @@ def _sin_clave_de_terapeuta(monkeypatch):
     monkeypatch.setattr(settings, "api_key_terapeuta", None)
 
 
+@pytest.fixture(autouse=True)
+def _sin_precalentamiento(monkeypatch):
+    """El arranque de la app precalienta el modelo con una petición de chat: en los tests eso contaría como una petición más al
+    servidor simulado (y desplazaría `peticiones[0]`). Los tests del precalentamiento llaman a `precalentar_llm()` directamente."""
+    monkeypatch.setattr(settings, "llm_precalentar", False)
+
+
 @pytest.fixture
 def fake(monkeypatch):
     f = FakeOllama()

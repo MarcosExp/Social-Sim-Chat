@@ -3,7 +3,7 @@
 COMPOSE = docker compose -f environment/docker-compose.yml --env-file environment/.env
 
 up:
-	@test -f environment/.env || cp environment/.env.example environment/.env
+	@sh scripts/preparar-env.sh
 	@mkdir -p src/models
 	$(COMPOSE) up -d --build
 

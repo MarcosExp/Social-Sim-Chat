@@ -77,9 +77,11 @@ services:
       TABBYAPI_HOST: ${TABBYAPI_HOST:-http://host.docker.internal:5000}
       TABBYAPI_MODEL: ${TABBYAPI_MODEL:-Qwen3.8-27B-EXL3-3.0bpw}
       TABBYAPI_API_KEY: ${TABBYAPI_API_KEY:-}
-      # Clave de las pantallas del terapeuta (dashboard y API de lectura/corrección). En compose es obligatoria
-      # por defecto; la clave de desarrollo NO sirve para un despliegue real: cámbiala en environment/.env.
-      API_KEY_TERAPEUTA: ${API_KEY_TERAPEUTA:-dev-terapeuta-local}
+      # Clave de las pantallas del terapeuta (dashboard y API de lectura/corrección). Sin valor por defecto: si falta, compose se
+      # niega a arrancar. `make up` y scripts/setup-local.* la generan al crear environment/.env.
+      API_KEY_TERAPEUTA: ${API_KEY_TERAPEUTA:?Falta API_KEY_TERAPEUTA en environment/.env (make up o scripts/setup-local la generan)}
+      # Precalienta el modelo al arrancar (un turno mínimo en segundo plano); false lo desactiva.
+      LLM_PRECALENTAR: ${LLM_PRECALENTAR:-true}
       MIGRACIONES_DIR: /migraciones   # montadas más abajo; solo las lee `make test`
     ports:
       - "127.0.0.1:${BACKEND_PORT:-8010}:8000"
@@ -103,7 +105,7 @@ services:
     environment:
       # El dashboard solo habla con la API (ADR-003): sin cadena de conexión ni acceso a Postgres.
       BACKEND_URL: http://backend:8000
-      API_KEY_TERAPEUTA: ${API_KEY_TERAPEUTA:-dev-terapeuta-local}
+      API_KEY_TERAPEUTA: ${API_KEY_TERAPEUTA:?Falta API_KEY_TERAPEUTA en environment/.env (make up o scripts/setup-local la generan)}
     ports:
       - "127.0.0.1:${DASHBOARD_PORT:-8501}:8501"
     volumes:

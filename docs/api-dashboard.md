@@ -3,7 +3,7 @@
 El dashboard solo habla con esta API (REST JSON; documentación interactiva en `/docs`). Cualquier regla de negocio vive en el backend.
 
 ## Acceso
-- **Clave del terapeuta:** cabecera `X-API-Key` = `API_KEY_TERAPEUTA`. En `docker compose` es obligatoria (por defecto `dev-terapeuta-local`, solo desarrollo); fuera de compose, vacía = API abierta. `GET /health` informa de `auth_terapeuta` (`activa`/`desactivada`).
+- **Clave del terapeuta:** cabecera `X-API-Key` = `API_KEY_TERAPEUTA`. En `docker compose` es obligatoria y no tiene valor por defecto (`make up` genera una aleatoria en `environment/.env`); fuera de compose, vacía = API abierta, y con `ENV` distinto de `development` el backend no arranca con la clave vacía ni con la antigua `dev-terapeuta-local`. `GET /health` informa de `auth_terapeuta` (`activa`/`desactivada`).
 - **Quién corrige:** los `PATCH` exigen `X-Terapeuta: <nombre>`, codificado en porcentaje porque las cabeceras HTTP son ASCII (`Álvaro` → `%C3%81lvaro`; un nombre sin acentos vale tal cual). Se guarda en `correccion_log`; **no está verificado**.
 - **Abiertos (sin clave):** `GET /health`, `GET /`, `/chat`, `GET /conversaciones/alumnos` y el flujo del menor (`POST /conversaciones`, `POST /conversaciones/{id}/turnos`).
 - Es autenticación de **prototipo** (clave compartida, sin usuarios ni roles). No basta para datos reales de menores.

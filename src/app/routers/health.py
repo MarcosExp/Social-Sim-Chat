@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 
 from app.config import settings
 from app.db import get_db
-from app.llm_client import diagnostico_llm
+from app.llm_client import describir_precalentamiento, diagnostico_llm
 from app.schemas import HealthOut
 
 router = APIRouter(tags=["health"])
@@ -38,4 +38,5 @@ async def health(db: Session = Depends(get_db)) -> HealthOut:
         llm=llm_status,
         llm_model=d.get("modelo"),
         llm_modelo_disponible=d.get("modelo_disponible"),
+        llm_precalentamiento=describir_precalentamiento(),
     )
