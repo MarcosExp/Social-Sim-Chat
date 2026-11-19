@@ -129,7 +129,7 @@ with tab_alumno:
                 for motivo in gate["motivos"]:
                     st.markdown(f"- {motivo}")
         else:
-            with st.expander(f"Predicción sobre sesiones reales: no disponible "
+            with st.expander(f"Predicción sobre sesiones reales: sin predicción "
                              f"({gate['sesiones_reales']} sesión(es) real(es); ventana de {gate['ventana_requerida']} por competencia)"):
                 for motivo in gate["motivos"]:
                     st.markdown(f"- {motivo}")
@@ -214,9 +214,8 @@ with tab_modelo:
         sv = m.get("servicio")
         if sv:
             st.subheader("Modelo de servicio (el que predice sobre sesiones reales)")
-            st.caption(f"{sv['modelo_version']} · {len(sv['features'])} features, sin %DET. Medido sobre el corpus sintético con los "
-                       f"mismos folds: F1-macro {sv['f1_macro']} · recall estancamiento {sv['recall_estancamiento']} · "
-                       f"precisión {sv['precision_estancamiento']}. {sv['aviso']}")
+            st.caption(f"{sv['modelo_version']} · {len(sv['features'])} features · F1-macro {sv['f1_macro']} · "
+                       f"recall estancamiento {sv['recall_estancamiento']} · precisión {sv['precision_estancamiento']}. {sv['aviso']}")
         if m.get("nota_sesiones"):
             st.caption(m["nota_sesiones"])
         af = m["anti_fuga"]
