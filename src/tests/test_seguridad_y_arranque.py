@@ -55,7 +55,10 @@ def test_el_compose_ya_no_trae_la_clave_publica_por_defecto():
     """La clave de desarrollo no puede volver a colarse como valor por defecto del compose ni de .env.example."""
     from pathlib import Path
     raiz = Path(__file__).resolve().parents[2]
-    for f in ("environment/docker-compose.yml", "environment/.env.example"):
+    ficheros = ("environment/docker-compose.yml", "environment/.env.example")
+    if not all((raiz / f).exists() for f in ficheros):      # `make test` corre en el contenedor, donde solo está src/
+        pytest.skip("solo en el repositorio completo (environment/ no está en el contenedor del backend)")
+    for f in ficheros:
         for linea in (raiz / f).read_text(encoding="utf-8").splitlines():
             if "API_KEY_TERAPEUTA" in linea and not linea.lstrip().startswith("#"):
                 assert CLAVE_DESARROLLO_CONOCIDA not in linea, f"{f}: {linea}"
