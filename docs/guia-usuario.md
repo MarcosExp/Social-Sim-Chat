@@ -79,7 +79,7 @@ Seis pestañas:
 
 **Cómo leer los datos (importante)**
 
-- Las etiquetas predichas (progreso, estancamiento, regresión) **solo existen para el corpus sintético**. Sobre sesiones reales el sistema no predice: la pestaña «Alumno» explica por qué.
+- Las etiquetas predichas (progreso, estancamiento, regresión) del corpus sintético salen de validación cruzada. Sobre **sesiones reales** hay una predicción **orientativa**: aparece en la pestaña «Alumno» cuando el alumno tiene 4 sesiones reales en una misma competencia (las 3 primeras no se predicen). El modelo se entrenó solo con datos sintéticos, no usa %DET y las escalas reales pueden no coincidir: **no está validada con menores reales** y no sustituye el criterio del terapeuta. «fuera de rango» marca las métricas que el modelo no había visto.
 - La **alerta** salta con 3 sesiones seguidas predichas como no-progreso. Las primeras sesiones de cada alumno salen como «datos insuficientes».
 - En «Sesiones reales», **aMLU, PEPE e IRC son provisionales** (dependen de un evaluador aún sin validar con conversaciones reales) y **%DET es un proxy** pendiente de un experto.
 - Cada sesión muestra el número de figuras (`n_figuras`): con 3–4 figuras, PEPE y %DET dan saltos de 25–33 puntos. Una sola sesión es ruidosa.
@@ -98,7 +98,7 @@ Seis pestañas:
 - No diagnostica, no detecta el trastorno y no sustituye al terapeuta.
 - No está validado con menores ni con terapeutas: las cifras salen de datos sintéticos y baterías propias.
 - No tiene usuarios ni roles: una clave compartida da acceso al panel.
-- No predice sobre sesiones reales.
+- Su predicción sobre sesiones reales es orientativa y no está validada con menores.
 - No registra los silencios del menor.
 
 Lista completa de límites: [`README.md`](../README.md) y [`AUTORIA.md`](../AUTORIA.md).

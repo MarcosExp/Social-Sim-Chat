@@ -22,6 +22,9 @@ async def lifespan(_app: FastAPI):
         log.warning(aviso)
     # 2. Rendimiento: precalienta el modelo en segundo plano (no retrasa el arranque; ver llm_client.precalentar_llm).
     tarea = asyncio.create_task(precalentar_llm()) if settings.llm_precalentar and not settings.llm_simulado else None
+    # 3. Clasificador de servicio: se carga `classifier.joblib` si existe (si no, la API funciona y /health lo dice). Nunca lanza.
+    from app import prediccion
+    log.info("Clasificador de servicio: %s", await asyncio.to_thread(prediccion.estado))
     try:
         yield
     finally:

@@ -20,6 +20,9 @@ def linea() -> str:
         extra += f" · NO cumple: {'; '.join(fallan)}"
     if sin_evaluar:
         extra += f" · sin evaluar: {'; '.join(sin_evaluar)}"
+    sv = m.get("servicio")
+    if sv:    # modelo de servicio (sin %DET): el que predice sobre sesiones reales
+        extra += f" · servicio {sv['modelo_version']} F1-macro {sv['f1_macro']} recall-estancamiento {sv['recall_estancamiento']}"
     return base + extra
 
 

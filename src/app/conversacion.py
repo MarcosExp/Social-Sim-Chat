@@ -376,10 +376,14 @@ def _registrar_metricas(db: Session, conv: Conversacion) -> None:
     """Métricas de la sesión terminada. Nunca rompe la conversación: si falla (p. ej. migración 004 sin
     aplicar), se registra el error y `scripts.metricas_reales` las recalcula después."""
     try:
-        metricas.registrar_sesion(db, conv)
+        sesion = metricas.registrar_sesion(db, conv)
     except Exception:  # noqa: BLE001
         db.rollback()
         log.exception("No se pudieron registrar las métricas de %s", conv.conversacion_id)
+        return
+    if sesion is not None:      # sesión real cerrada: predicción del modelo de servicio (orientativa; nunca rompe la conversación)
+        from app import prediccion      # import diferido: arrastra pandas/numpy
+        prediccion.guardar_sin_romper(db, conv.student_id)
 
 
 def cargar(db: Session, conversacion_id: uuid.UUID) -> Conversacion:

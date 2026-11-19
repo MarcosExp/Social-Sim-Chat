@@ -119,10 +119,18 @@ with tab_alumno:
         )
         gate = api.leer(f"/students/{sel}/prediccion")
         if gate["disponible"]:
-            st.success("Predicción disponible sobre las sesiones reales de este alumno.")
+            with st.expander(f"Predicción ORIENTATIVA sobre sesiones reales ({len(gate['predicciones'])} sesión(es), "
+                             f"modelo {gate['modelo_version']})", expanded=True):
+                st.warning(" ".join(gate["avisos"]))
+                pr = pd.DataFrame(gate["predicciones"])
+                pr["fuera_de_rango"] = pr["fuera_de_rango"].map(lambda v: ", ".join(v) or "—")
+                st.dataframe(pr[["sesion_num", "competencia", "etiqueta_predicha", "confianza",
+                                 "es_estancamiento_operacional", "fuera_de_rango"]], hide_index=True)
+                for motivo in gate["motivos"]:
+                    st.markdown(f"- {motivo}")
         else:
             with st.expander(f"Predicción sobre sesiones reales: no disponible "
-                             f"({gate['sesiones_reales']} real(es) de {gate['ventana_requerida']} necesarias)"):
+                             f"({gate['sesiones_reales']} sesión(es) real(es); ventana de {gate['ventana_requerida']} por competencia)"):
                 for motivo in gate["motivos"]:
                     st.markdown(f"- {motivo}")
                 st.caption("Las etiquetas predichas de la tabla corresponden al corpus sintético, calculadas por lotes con `make train`.")
@@ -203,6 +211,12 @@ with tab_modelo:
             x[1].metric("Alumnos detectados", f"{d['pct_alumnos_detectados']:.0%}")
             x[2].metric("Falsas alertas en progreso", f"{d['pct_falsa_alerta_progreso']:.0%}")
             x[3].metric("Sesiones evaluadas", m["n_sesiones"])
+        sv = m.get("servicio")
+        if sv:
+            st.subheader("Modelo de servicio (el que predice sobre sesiones reales)")
+            st.caption(f"{sv['modelo_version']} · {len(sv['features'])} features, sin %DET. Medido sobre el corpus sintético con los "
+                       f"mismos folds: F1-macro {sv['f1_macro']} · recall estancamiento {sv['recall_estancamiento']} · "
+                       f"precisión {sv['precision_estancamiento']}. {sv['aviso']}")
         if m.get("nota_sesiones"):
             st.caption(m["nota_sesiones"])
         af = m["anti_fuga"]

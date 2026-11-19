@@ -93,3 +93,43 @@ def cliente(bd, fake):
     from app.main import app
     with TestClient(app) as c:
         yield c
+
+
+# ------------------------------------------------------------------------------------------------ modelo de servicio de pruebas
+def escribir_modelo_servicio(ruta, constante="estancamiento", rangos=None, features=None, version=None):
+    """Escribe un `classifier.joblib` mínimo (el bloque `servicio` con un clasificador que siempre devuelve `constante`)."""
+    import joblib
+    import numpy as np
+    from sklearn.dummy import DummyClassifier
+
+    from app import ml_config
+    cols = features if features is not None else ml_config.columnas_features_servicio()
+    p = ml_config.config_servicio()["features"]
+    modelo = DummyClassifier(strategy="constant", constant=constante).fit(
+        np.zeros((3, len(cols))), ["estancamiento", "progreso", "regresion"])
+    servicio = {"modelo": modelo, "features": cols, "version": version or "rf-vent4-sinDET-test", "metricas": ml_config.metricas_servicio(),
+                "ventana": int(p["ventana"]), "n_base": int(p["n_base"]),
+                "rango_entrenamiento": rangos or {c: [-1e9, 1e9] for c in cols}}
+    joblib.dump({"servicio": servicio}, ruta)
+
+
+@pytest.fixture
+def modelo_servicio(monkeypatch, tmp_path):
+    """Dirige `app.prediccion` a un joblib temporal. Devuelve una función `poner(constante, **kw)` que lo (re)escribe."""
+    from app import prediccion
+    ruta = tmp_path / "classifier.joblib"
+    monkeypatch.setattr(prediccion, "RUTA", ruta)
+    monkeypatch.setattr(prediccion, "_cache", {"firma": None, "paquete": None, "motivo": "sin cargar"})
+
+    def poner(constante="estancamiento", **kw):
+        escribir_modelo_servicio(ruta, constante, **kw)
+        prediccion._cache["firma"] = None       # fuerza la relectura aunque el mtime no cambie
+        return ruta
+    return poner
+
+
+@pytest.fixture
+def sin_modelo(monkeypatch, tmp_path):
+    from app import prediccion
+    monkeypatch.setattr(prediccion, "RUTA", tmp_path / "no-existe.joblib")
+    monkeypatch.setattr(prediccion, "_cache", {"firma": None, "paquete": None, "motivo": "sin cargar"})

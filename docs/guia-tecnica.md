@@ -49,6 +49,8 @@ src/app/        backend FastAPI
   llm_client.py   cliente Ollama / compatible con OpenAI y precalentamiento
   simulado.py     LLM falso por reglas
   metricas.py     cinco métricas por sesión (DEFINICION_VERSION)
+  ml_config.py    adaptador a `src/ml/` (de Marcos, sin modificar); config del modelo de servicio sin %DET
+  prediccion.py   carga de classifier.joblib y predicción sobre sesiones reales (orientativa)
   models.py, schemas.py, db.py   ORM, contratos y sesión de base de datos
   routers/        students, sessions, conversaciones, correcciones, predicciones, modelo, resumen, health
   guiones/guiones.json   guion literal, personajes y competencias
@@ -101,7 +103,9 @@ Código en `conversacion.py::responder`:
 - `make seed` carga el corpus del generador (100 alumnos, 1.500 sesiones) y los turnos sintéticos; `make train` entrena y escribe `src/models/classifier.joblib`, `metrics.json` y las predicciones en `session_data`; `make verify` muestra los conteos y las métricas.
 - **Control anti-fuga:** el entrenamiento solo lee `origen = 'sintetico'`, con validación cruzada agrupada por alumno, un modelo señuelo y etiquetas permutadas. Hay prueba que lo comprueba.
 - **Criterios:** `train_classifier.py` importa los nueve de `UMBRALES` de `src/ml/evaluar_corpus.py` (código de Marcos, sin modificar) y los guarda en `metrics.json`; `make verify` imprime «criterios k/9».
-- **El backend no carga el clasificador:** solo sirve `metrics.json` (`GET /modelo/metricas`). Sobre sesiones reales no se predice: `GET /students/{id}/prediccion` devuelve `disponible: false` con los motivos.
+- **Dos modelos en un mismo `classifier.joblib`.** El **evaluado** (15 features, con %DET) da las métricas y las predicciones del corpus sintético por validación cruzada. El **de servicio** (clave `servicio`, 12 features, **sin %DET**, `modelo_version` con `sinDET`) se entrena con las mismas sesiones y los mismos folds y es el que usa el backend sobre sesiones reales. Su configuración sale de `app/ml_config.py` (`config_servicio()`: la config del generador sin las métricas de `metricas.PROVISIONALES`); `ml/` no se toca.
+- **Predicción sobre sesiones reales (`app/prediccion.py`).** Se carga el joblib al arrancar y se relee si el fichero cambia (`make train` con el backend en marcha); si falta o no encaja, la API sigue y `/health` lo dice (`clasificador`). Al cerrar una sesión real y al corregir un turno se recalculan las predicciones del alumno (`classifier_predictions` + última en `session_data`). Las features son de ventana: hacen falta 4 sesiones reales en una misma competencia, las 3 primeras no se predicen y la alerta (3 no-progreso seguidos) usa las predicciones anteriores. Solo entran sesiones `origen='real'`. La prueba `test_prediccion_real.py` comprueba que el joblib guarda la misma lista de features que construye la inferencia.
+- **Límite:** entrenado con datos sintéticos; las escalas reales pueden no coincidir (`fuera_de_rango` lo señala) y no está validado con menores reales. `aMLU`, `PEPE` e `IRC` dependen del evaluador 0/1/2, aún sin validar.
 - No hay reentrenamiento automático.
 - Escalado a Kafka y Spark: [`escalado.md`](escalado.md) (solo diseño, no implementado).
 
