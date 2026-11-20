@@ -1,5 +1,7 @@
 # Perfiles de alumno simulado — SOCIAL-SIM Chat
 
+> **Documento histórico (NF1, 2026-10).** Se conserva como referencia de diseño y **no describe el sistema entregado**. Los cuatro perfiles pasaron a ser arquetipos de competencia del generador (`src/generador/config.yaml`); el modelo de datos vigente es [`docs/er_v2.mmd`](../er_v2.mmd). Ver [`README.md`](README.md) de esta carpeta.
+
 **Tarea de reparto:** Álvaro García Puche — "Especificación de los perfiles de alumno simulado y sus trayectorias"
 **Base teórica:** TFM 2020 (García Puche) — grupos de edad 6-8 / 8-10 / 10-12 años, cuatro competencias pragmáticas de referencia (metáfora, sarcasmo, deixis, preguntas recíprocas), y las cuatro áreas de dificultad del TEA/SA (interacción social, comunicación, intereses restringidos, rutinas/inflexibilidad).
 

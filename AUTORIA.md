@@ -47,7 +47,7 @@ el apartado «Uso de inteligencia artificial»; el desarrollo del código lo apo
 ## Material de equipo (a confirmar entre los dos)
 
 - `src/scripts/generador_corpus_sintetico.py` (generador anterior, heredado del NF1) y `src/app/guiones/guiones.json`
-  (transcripción de `Guiones_Dialogo.md`, NF1): trabajo del equipo en el entregable NF1.
+  (transcripción de `docs/historico/Guiones_Dialogo.md`, NF1): trabajo del equipo en el entregable NF1.
 - `data/init-db/001_schema.sql`: esquema inicial del NF2.
 
 ## Trabajo previo de uno de los autores
