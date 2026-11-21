@@ -154,9 +154,14 @@ def calcular(db: Session, student_id: str) -> Resultado:
     modelo = paquete["modelo"]
     pred = modelo.predict(X)
     conf = modelo.predict_proba(X).max(axis=1)
-    F["_np"] = pred != "progreso"
-    alerta = (F.sort_values(["competencia", "sesion"]).groupby("competencia")["_np"]
-              .transform(lambda s: s.rolling(RACHA_ALERTA).sum() == RACHA_ALERTA).reindex(F.index).fillna(False).to_numpy())
+    # Alerta: RACHA_ALERTA sesiones reales SEGUIDAS de la misma competencia predichas como no-progreso. La posición se cuenta
+    # sobre todas las sesiones reales de la competencia, también las que no tienen predicción: una sesión sin predicción
+    # (métrica nula) corta la racha, en vez de dejar que sus vecinas cuenten como seguidas.
+    orden = df.sort_values(["competencia", "sesion"])
+    pos = dict(zip(orden["session_id"], orden.groupby("competencia").cumcount()))
+    no_progreso = {(c, pos[i]): bool(n) for c, i, n in zip(F["competencia"], F["session_id"], pred != "progreso")}
+    alerta = [all(no_progreso.get((c, pos[i] - k), False) for k in range(RACHA_ALERTA))
+              for c, i in zip(F["competencia"], F["session_id"])]
     rangos = paquete.get("rango_entrenamiento", {})
     eps = 1e-9
     salida = []

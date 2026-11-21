@@ -176,6 +176,31 @@ def test_la_alerta_necesita_tres_predicciones_seguidas_de_no_progreso(cliente, a
     assert alertas == {4: False, 5: False, 6: True}
 
 
+def test_una_sesion_sin_prediccion_corta_la_racha_de_la_alerta(cliente, alumno, bd, modelo_servicio):
+    """Si a una sesión le falta una métrica, las de antes y las de después no cuentan como «seguidas» (revisión de Marcos, 21/11)."""
+    modelo_servicio("estancamiento")
+    hueco = 6
+    for n in range(1, 14):
+        _sesion_real(bd, alumno, n, amlu=None if n == hueco else 3.0)
+    pred = {p["sesion_num"]: p["es_estancamiento_operacional"]
+            for p in cliente.get(f"/students/{alumno}/prediccion").json()["predicciones"]}
+    assert hueco not in pred and {4, 5} <= set(pred) and max(pred) == 13
+    despues = sorted(n for n in pred if n > hueco)
+    assert despues == list(range(despues[0], 14))                      # tras el hueco, las predichas son consecutivas
+    assert not pred[4] and not pred[5]
+    assert [pred[n] for n in despues] == [False, False] + [True] * (len(despues) - 2)   # la racha vuelve a empezar de cero
+
+
+def test_la_racha_se_cuenta_por_competencia(cliente, alumno, bd, modelo_servicio):
+    """Sesiones de otra competencia intercaladas no cortan ni alargan la racha de la primera."""
+    modelo_servicio("estancamiento")
+    for n in range(1, 13):
+        _sesion_real(bd, alumno, n, "Metáfora" if n % 2 else "Sarcasmo")
+    pred = {p["sesion_num"]: p["es_estancamiento_operacional"]
+            for p in cliente.get(f"/students/{alumno}/prediccion").json()["predicciones"]}
+    assert pred == {7: False, 8: False, 9: False, 10: False, 11: True, 12: True}
+
+
 def test_sin_no_progreso_no_hay_alerta(cliente, alumno, bd, modelo_servicio):
     modelo_servicio("progreso")
     for n in range(1, 8):
