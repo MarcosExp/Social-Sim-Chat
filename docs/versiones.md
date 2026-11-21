@@ -9,11 +9,11 @@
 | Fuente | Qué documenta | Dónde |
 |---|---|---|
 | NF2 (PDF, apartado 8 «Datos», criterio cuantitativo del clasificador) | scikit-learn 1.9.1, numpy 2.5.3, pandas 3.0.5 («versiones fijadas en el `requirements.txt` del repositorio»); con scikit-learn 1.6.1 el recall de estancamiento baja a 0,650 | `MarcosExp/Social-Sim-Chat`, `docs/NF2_Documentacion_y_Diseno_Tecnico.pdf` |
-| `requirements.txt` del repo académico (Marcos, 13/10/2026, `9b9fbbb`) | numpy 2.5.3, pandas 3.0.5, pyyaml 6.0.3, scikit-learn 1.9.1 | raíz del repo académico |
+| `requirements.txt` de la raíz del repo académico (Marcos, 13/10/2026, `9b9fbbb`); **retirado de la raíz el 20/11/2026** por duplicar `src/requirements.txt` | numpy 2.5.3, pandas 3.0.5, pyyaml 6.0.3, scikit-learn 1.9.1 | historial de git de este repositorio; hoy las mismas cuatro versiones están en `src/requirements.txt` |
 | `src/requirements*.txt` y `environment/` de nf3 | todo lo demás (FastAPI, SQLAlchemy, Streamlit, imágenes…) | este repositorio |
 | Llamada Álvaro–Marcos del 25/10/2026 (de palabra; Marcos la confirmó por escrito ese día a las 22:31 y dio además su visto bueno a streamlit 1.56.0, a las imágenes con digest y a `constraints.txt`) | armonizar las cuatro versiones anteriores y pasar la imagen a Python 3.12 | PR n.º 5 |
 
-El NF2 nombra las tecnologías (FastAPI, Ollama, scikit-learn, Streamlit, Plotly, Docker Compose, PostgreSQL) pero **solo da versión de tres: scikit-learn, numpy y pandas**. pyyaml 6.0.3 solo consta en el `requirements.txt` del repo académico. El resto de versiones no tiene otro respaldo documental que este repositorio.
+El NF2 nombra las tecnologías (FastAPI, Ollama, scikit-learn, Streamlit, Plotly, Docker Compose, PostgreSQL) pero **solo da versión de tres: scikit-learn, numpy y pandas**. pyyaml 6.0.3 solo constaba en el `requirements.txt` de la raíz del repo académico (retirado; la versión se conserva en `src/requirements.txt`). El resto de versiones no tiene otro respaldo documental que este repositorio.
 
 ## 2. Python y paquetes fijados (`==`)
 

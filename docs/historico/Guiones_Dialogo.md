@@ -1,5 +1,7 @@
 # Guiones de diálogo y personajes — SOCIAL-SIM Chat
 
+> **Documento histórico (NF1, 2026-10).** Los guiones que ejecuta el sistema están en `src/app/guiones/guiones.json` (transcripción literal de este texto: si difieren, manda el JSON). Ver [`README.md`](README.md) de esta carpeta.
+
 **Tarea de reparto:** Álvaro García Puche — "Guiones de diálogo y personajes para cada competencia pragmática"
 **Base teórica:** TFM 2020 (García Puche) — el chatbot funciona como espacio de práctica de bajo riesgo ("sin expectativas ni juicios", Wegerif, 2004), con personajes estables y predecibles que reducen la ansiedad, y una estructura de turno con códigos de comunicación claros: apertura, conversación, escucha, cierre y despedida.
 
