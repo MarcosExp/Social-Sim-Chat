@@ -4,9 +4,9 @@ generador_corpus_sintetico.py — SOCIAL-SIM Chat
 
 Genera el corpus sintético de sesiones (`student_profile_sim` + `session_data`)
 a partir de las especificaciones ya cerradas en:
-  - Perfiles_Alumno_Simulado.md  (4 arquetipos: A progreso, B estancamiento,
+  - docs/historico/Perfiles_Alumno_Simulado.md  (4 arquetipos: A progreso, B estancamiento,
     C regresión, D progreso ruidoso; rangos de las 5 métricas por fase/sesión)
-  - Guiones_Dialogo.md           (nº de turnos evaluables por competencia:
+  - docs/historico/Guiones_Dialogo.md           (nº de turnos evaluables por competencia:
     Metáfora=4, Sarcasmo=3, Preguntas recíprocas=3, Deixis=3, + apertura Guion 0)
 
 Esqueleto de partida para Marcos (plataforma/ingeniería ML) — punto de partida,
@@ -46,7 +46,7 @@ import numpy as np
 import pandas as pd
 
 # ---------------------------------------------------------------------------
-# 1. Especificación de los 4 arquetipos (fuente: Perfiles_Alumno_Simulado.md)
+# 1. Especificación de los 4 arquetipos (fuente: docs/historico/Perfiles_Alumno_Simulado.md)
 # ---------------------------------------------------------------------------
 
 METRICAS = ["aMLU", "latencia_pragmatica_ms", "IRC_pct", "PEPE", "pct_DET"]
@@ -175,7 +175,7 @@ ARQUETIPOS = {
     "D": Arquetipo("D", "Deixis", "6-8", 15, _curva_D),
 }
 
-# Nº de turnos evaluables por guion de competencia (fuente: Guiones_Dialogo.md)
+# Nº de turnos evaluables por guion de competencia (fuente: docs/historico/Guiones_Dialogo.md)
 TURNOS_POR_COMPETENCIA = {
     "Metáfora": 4,
     "Sarcasmo": 3,
@@ -186,7 +186,7 @@ TURNOS_APERTURA = 2  # Guion 0, no evaluado (no genera accuracy_score)
 
 ETIQUETA_POR_ARQUETIPO_Y_FASE = {
     # (codigo, sesion) -> etiqueta real diseñada, coherente con
-    # Perfiles_Alumno_Simulado.md
+    # docs/historico/Perfiles_Alumno_Simulado.md
     "A": lambda s: "Progreso",
     "B": lambda s: "Progreso" if s <= 7 else "Estancamiento",
     "C": lambda s: "Progreso" if s <= 9 else "Regresión",
