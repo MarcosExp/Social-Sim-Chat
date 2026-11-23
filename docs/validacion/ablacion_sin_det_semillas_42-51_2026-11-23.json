@@ -1,0 +1,138 @@
+{
+  "semillas": [
+    42,
+    43,
+    44,
+    45,
+    46,
+    47,
+    48,
+    49,
+    50,
+    51
+  ],
+  "A_corpus_fijo": {
+    "con %DET": {
+      "recall_estancamiento": {
+        "media": 0.732,
+        "min": 0.7,
+        "max": 0.762,
+        "desv": 0.018
+      },
+      "f1_macro": {
+        "media": 0.796,
+        "min": 0.785,
+        "max": 0.802,
+        "desv": 0.005
+      },
+      "precision_estancamiento": {
+        "media": 0.695,
+        "min": 0.686,
+        "max": 0.701,
+        "desv": 0.006
+      },
+      "accuracy": {
+        "media": 0.834,
+        "min": 0.826,
+        "max": 0.839,
+        "desv": 0.004
+      },
+      "semillas_con_recall_>=_0.65": "10/10"
+    },
+    "sin %DET": {
+      "recall_estancamiento": {
+        "media": 0.7,
+        "min": 0.645,
+        "max": 0.733,
+        "desv": 0.027
+      },
+      "f1_macro": {
+        "media": 0.777,
+        "min": 0.757,
+        "max": 0.785,
+        "desv": 0.009
+      },
+      "precision_estancamiento": {
+        "media": 0.661,
+        "min": 0.635,
+        "max": 0.674,
+        "desv": 0.011
+      },
+      "accuracy": {
+        "media": 0.819,
+        "min": 0.805,
+        "max": 0.825,
+        "desv": 0.006
+      },
+      "semillas_con_recall_>=_0.65": "9/10"
+    },
+    "diferencia_media_sin_menos_con": {
+      "recall_estancamiento": -0.032,
+      "f1_macro": -0.019,
+      "precision_estancamiento": -0.034,
+      "accuracy": -0.016
+    }
+  },
+  "B_corpus_regenerado": {
+    "con %DET": {
+      "recall_estancamiento": {
+        "media": 0.692,
+        "min": 0.597,
+        "max": 0.763,
+        "desv": 0.055
+      },
+      "f1_macro": {
+        "media": 0.779,
+        "min": 0.744,
+        "max": 0.814,
+        "desv": 0.026
+      },
+      "precision_estancamiento": {
+        "media": 0.686,
+        "min": 0.579,
+        "max": 0.759,
+        "desv": 0.048
+      },
+      "accuracy": {
+        "media": 0.825,
+        "min": 0.803,
+        "max": 0.853,
+        "desv": 0.019
+      },
+      "semillas_con_recall_>=_0.65": "8/10"
+    },
+    "sin %DET": {
+      "recall_estancamiento": {
+        "media": 0.643,
+        "min": 0.555,
+        "max": 0.714,
+        "desv": 0.057
+      },
+      "f1_macro": {
+        "media": 0.748,
+        "min": 0.705,
+        "max": 0.792,
+        "desv": 0.027
+      },
+      "precision_estancamiento": {
+        "media": 0.635,
+        "min": 0.541,
+        "max": 0.701,
+        "desv": 0.043
+      },
+      "accuracy": {
+        "media": 0.801,
+        "min": 0.772,
+        "max": 0.832,
+        "desv": 0.021
+      },
+      "semillas_con_recall_>=_0.65": "5/10"
+    },
+    "diferencia_media_sin_menos_con": {
+      "recall_estancamiento": -0.049,
+      "f1_macro": -0.031,
+      "precision_estancamiento": -0.051,
+      "accuracy": -0.025
+    }
+  }
+}
