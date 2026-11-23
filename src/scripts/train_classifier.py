@@ -39,18 +39,37 @@ from sklearn.metrics import confusion_matrix
 
 from app import ml_config
 from app.ml_config import construir_features, heuristica
-from ml.evaluar_corpus import CLASES, cv_predict, metricas, retraso_deteccion, rf
+from ml.evaluar_corpus import CLASES, UMBRALES as CRITERIOS_MARCOS, cv_predict, metricas, retraso_deteccion, rf
 
 COLUMNAS_FEATURES = ml_config.columnas_features()
 VENTANA = ml_config.ventana()
 
 # Umbrales de éxito (recall de estancamiento revisado a >=0.65 tras medir el efecto de las transiciones).
 UMBRALES = {"f1_macro": 0.75, "recall_estancamiento": 0.65, "precision_estancamiento": 0.65}
+NOMBRE_TRAMPOSO = "tramposo_f1 <= real_f1 - 0.10"   # nombres de los criterios de Marcos que forman el control anti-fuga
+NOMBRE_PERMUTADAS = "permutadas_f1 <= 0.40"
 MODELS_DIR = Path(__file__).resolve().parent.parent / "models"
 # La BD guarda las etiquetas en minúsculas y sin tilde (ER v2); SIN_ACENTO acepta además las formas con mayúscula/tilde.
 SIN_ACENTO = {"Progreso": "progreso", "Estancamiento": "estancamiento", "Regresión": "regresion",
               "progreso": "progreso", "estancamiento": "estancamiento", "regresion": "regresion"}
 CON_ACENTO = {"progreso": "Progreso", "estancamiento": "Estancamiento", "regresion": "Regresión"}   # solo para informes
+
+
+def evaluar_criterios(res: dict) -> dict[str, bool | None]:
+    """Los nueve criterios de éxito del NF2, con LA MISMA definición que `ml/evaluar_corpus.py` de Marcos (una sola fuente de verdad).
+
+    `res` = {"real", "heuristica", "tramposo", "permutadas", "deteccion"} (dicts de `metricas()`/`retraso_deteccion()`).
+    Antes `make train` comprobaba solo tres umbrales y un límite propio de las etiquetas permutadas (< 0,45, distinto del ≤ 0,40
+    de Marcos); ahora comprueba los nueve, incluidos la ventaja sobre la heurística y los tres de detección. Un criterio que no se
+    puede evaluar (corpus sin `inicio_cambio`, sin detección) sale `None`, no `False`.
+    """
+    out: dict[str, bool | None] = {}
+    for nombre, f in CRITERIOS_MARCOS:
+        try:
+            out[nombre] = bool(f(res))
+        except (TypeError, KeyError):
+            out[nombre] = None
+    return out
 
 
 def cargar() -> tuple[pd.DataFrame, pd.DataFrame]:
@@ -182,10 +201,14 @@ def main() -> int:
         "aviso": "Datos sintéticos: valida la arquitectura, no la eficacia clínica. Una sola partición en folds (±0.05).",
     }
     out["cumple_umbrales"] = {k: bool(out[k] >= v) for k, v in UMBRALES.items()}
+    criterios = evaluar_criterios({"real": real, "heuristica": heur, "tramposo": tramposo, "permutadas": permutadas,
+                                   "deteccion": out["deteccion"]})
+    out["criterios"] = criterios
+    out["criterios_cumplidos"] = f"{sum(v is True for v in criterios.values())}/{len(criterios)}"
     out["anti_fuga"] = {
         "f1_macro_senuelo_competencia_sesion": r3(tramposo["f1_macro"]),
         "f1_macro_etiquetas_permutadas": r3(permutadas["f1_macro"]),
-        "superado": bool(tramposo["f1_macro"] < real["f1_macro"] - 0.10 and permutadas["f1_macro"] < 0.45),
+        "superado": bool(criterios[NOMBRE_TRAMPOSO] and criterios[NOMBRE_PERMUTADAS]),   # criterios de Marcos, sin límites propios
     }
 
     final = rf(args.seed).fit(X, y)  # modelo final: todo el corpus (para inferencia futura desde FastAPI)
@@ -197,7 +220,8 @@ def main() -> int:
     (MODELS_DIR / "metrics.json").write_text(json.dumps(out, ensure_ascii=False, indent=2), encoding="utf-8")
 
     print(json.dumps({k: out[k] for k in ("f1_macro", "accuracy", "recall_estancamiento", "precision_estancamiento",
-                                         "cumple_umbrales", "anti_fuga", "heuristica", "deteccion")},
+                                         "cumple_umbrales", "criterios_cumplidos", "criterios", "anti_fuga", "heuristica",
+                                         "deteccion")},
                      ensure_ascii=False, indent=2))
     print(f"Modelo {version} guardado en {MODELS_DIR}")
     return 0

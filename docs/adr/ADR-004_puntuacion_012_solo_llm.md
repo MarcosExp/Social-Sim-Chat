@@ -1,6 +1,6 @@
 # ADR-004 — La puntuación 0/1/2 la asigna solo el LLM (en el modo simulado, un LLM falso) y se comprueba con respuestas etiquetadas
 
-- **Estado:** acordada de palabra el 25/10/2026 (llamada entre Álvaro y Marcos) · redactada el mismo día · **pendiente de que Marcos la revise en la PR n.º 4**
+- **Estado:** aceptada · acordada de palabra en la llamada del 24/10/2026 entre Álvaro y Marcos y puesta por escrito el 25/10/2026 · Marcos dio su OK por escrito el 26/10/2026 (revisión de la PR n.º 4)
 - **Decide:** Álvaro García y Marcos Expósito · **Revisa:** Marcos Expósito
 - **Afecta a:** `src/app/conversacion.py` (evaluador), `src/app/simulado.py`, `src/app/guarda.py`, `src/scripts/bateria_valoracion.py`, `src/tests/data/bateria_valoracion_*.json`, memoria NF3 (validación del evaluador, uso de IA)
 

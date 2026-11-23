@@ -21,6 +21,8 @@ Garantías de este cliente (pensadas para 16 GB de VRAM y un único modelo carga
 4. Reintento acotado (`ollama_max_reintentos`, espera exponencial) solo ante fallos de conexión,
    timeouts y 5xx. Agotados, `LLMNoDisponible` con un mensaje accionable. Los 4xx no se reintentan.
 5. `diagnostico_llm()` da un estado claro para /health, sin pasar por la cola ni reintentar.
+6. `precalentar_llm()` carga el modelo al arrancar el backend (en segundo plano, sin lanzar nunca), para que el primer
+   turno de un menor no pague la carga en VRAM.
 """
 from __future__ import annotations
 
@@ -310,3 +312,47 @@ async def chat_completion(messages: list[dict], **kwargs) -> dict:
     """Compatibilidad con el código anterior: devuelve forma OpenAI {choices:[{message}]}."""
     r = await chat(messages, **kwargs)
     return {"model": r.modelo, "choices": [{"message": {"role": "assistant", "content": r.texto}}]}
+
+
+# ----------------------------------------------------------------------------- precalentamiento
+ESTADO_PRECALENTAMIENTO: dict = {"estado": "no_aplica", "ms": None, "detalle": ""}
+
+
+def describir_precalentamiento() -> str:
+    """Texto corto para /health: «ok (1234 ms)», «en curso», «error: ...» o «no aplica»."""
+    e = ESTADO_PRECALENTAMIENTO
+    if e["estado"] == "ok":
+        return f"ok ({e['ms']} ms)"
+    if e["estado"] == "error":
+        return f"error: {e['detalle']}"
+    return {"en_curso": "en curso", "no_aplica": "no aplica"}[e["estado"]]
+
+
+async def precalentar_llm(*, intentos: int = 6, espera_s: float = 5.0) -> dict:
+    """Un turno mínimo (1 token) con la MISMA configuración que el chat (num_ctx, think, keep_alive), para dejar el modelo en VRAM.
+
+    Nunca lanza: si el motor aún está arrancando se reintenta (`intentos` veces, `espera_s` entre ellas); si el modelo no existe
+    o el motor no responde, queda en ESTADO_PRECALENTAMIENTO («error») y el primer turno real lo dirá con su mensaje accionable.
+    """
+    e = ESTADO_PRECALENTAMIENTO
+    if settings.llm_simulado or not settings.llm_precalentar:
+        e.update(estado="no_aplica", ms=None, detalle="")
+        return dict(e)
+    e.update(estado="en_curso", ms=None, detalle="")
+    t0 = time.perf_counter()
+    for n in range(1, max(1, intentos) + 1):
+        try:
+            await chat([{"role": "user", "content": "Hola"}], num_predict=1)
+        except LLMNoDisponible as exc:           # el motor puede estar todavía arrancando: se espera y se reintenta
+            e.update(estado="error", ms=None, detalle=exc.mensaje)
+            if n < intentos:
+                await asyncio.sleep(espera_s)
+                continue
+        except LLMError as exc:                  # modelo inexistente, contexto, cola...: reintentar no arregla nada
+            e.update(estado="error", ms=None, detalle=exc.mensaje)
+        except Exception as exc:  # noqa: BLE001 — el precalentamiento jamás debe tumbar el backend
+            e.update(estado="error", ms=None, detalle=f"{type(exc).__name__}: {exc}")
+        else:
+            e.update(estado="ok", ms=round((time.perf_counter() - t0) * 1000), detalle="")
+        break
+    return dict(e)

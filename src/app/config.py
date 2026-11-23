@@ -16,6 +16,8 @@ class Settings(BaseSettings):
     env: str = "development"
     # Clave compartida del terapeuta (cabecera X-API-Key) para los endpoints de análisis y corrección. Vacía = autenticación
     # desactivada (solo desarrollo local; /health lo indica). El chat del menor (crear conversación y enviar turnos) no la exige.
+    # Con ENV distinto de «development» el backend NO arranca si está vacía o es la clave de desarrollo que publicó el repositorio
+    # (app.seguridad.comprobar_configuracion). `make up` genera una clave aleatoria en environment/.env.
     api_key_terapeuta: str | None = None
     # Resumen del último entrenamiento (lo escribe scripts.train_classifier); la API lo sirve en /modelo/metricas.
     metrics_path: Path = Path(__file__).resolve().parent.parent / "models" / "metrics.json"
@@ -45,6 +47,10 @@ class Settings(BaseSettings):
     ollama_max_reintentos: int = 2       # reintentos acotados si Ollama no responde (0 = ninguno)
     ollama_reintento_espera_s: float = 0.5   # espera inicial; se duplica en cada reintento
     ollama_cola_timeout_s: float = 120.0     # máx. espera para entrar en la cola (1 petición a la vez)
+    # Precalienta el modelo al arrancar el backend (un turno mínimo con la misma configuración que el chat), para que la primera
+    # conversación no pague la carga del modelo en VRAM (el 25/10 el primer turno tardó 8,1 s y en caliente 1,6 s de mediana).
+    # Se hace en segundo plano: no retrasa el arranque ni lo impide si el LLM no está disponible. No aplica al modo simulado.
+    llm_precalentar: bool = True
 
     # Modo simulado: sus conversaciones son `es_prueba` (no generan sesión ni métricas reales) para no mezclar valoraciones por reglas
     # con datos reales. Ponlo a true SOLO en una base de datos de demostración, para ver el recorrido completo en el dashboard.
