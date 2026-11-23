@@ -36,3 +36,39 @@ def construir_features(df):
 def heuristica(F):
     from ml.evaluar_corpus import heuristica
     return heuristica(F, CONFIG)
+
+
+# ------------------------------------------------------------------------------------------------ modelo de servicio
+# El modelo que predice sobre sesiones REALES no usa las métricas provisionales (hoy, %DET: `metricas.PROVISIONALES`).
+# No se toca `ml/`: `cargar_parametros()` acepta un dict, así que aquí se le pasa la misma config sin esas métricas
+# (acordado con Marcos, 19/11/2026). Entrenamiento del modelo de servicio e inferencia leen ESTA config.
+SUFIJO_VERSION_SERVICIO = "sinDET"      # va en `modelo_version`: deja claro que el modelo no usa %DET
+
+
+@lru_cache(maxsize=1)
+def config_servicio() -> dict:
+    import yaml
+
+    from app.metricas import columnas_para_clasificador
+    cfg = yaml.safe_load(CONFIG.read_text(encoding="utf-8"))
+    permitidas = columnas_para_clasificador()
+    return {"metricas": {m: v for m, v in cfg["metricas"].items() if m in permitidas}, "features": cfg["features"]}
+
+
+def metricas_servicio() -> list[str]:
+    return list(config_servicio()["metricas"])
+
+
+def columnas_features_servicio() -> list[str]:
+    from ml.features import columnas_features
+    return columnas_features(config_servicio())
+
+
+def construir_features_servicio(df):
+    from ml.features import construir_features
+    return construir_features(df, config_servicio())
+
+
+def heuristica_servicio(F):
+    from ml.evaluar_corpus import heuristica
+    return heuristica(F, config_servicio())

@@ -25,7 +25,10 @@ def resumen(db: Session = Depends(get_db)) -> ResumenOut:
         conversaciones=n(select(func.count()).select_from(Conversacion)),
         predicciones=n(select(func.count()).select_from(ClassifierPrediction)),
         versiones_modelo=n(select(func.count(func.distinct(ClassifierPrediction.modelo_version)))),
-        ultima_version_modelo=db.scalar(select(func.max(ClassifierPrediction.modelo_version))),
+        # solo el modelo evaluado (corpus sintético): «rf-vent4-sinDET-…» ordenaría alfabéticamente por delante de «rf-vent4-2026…»
+        ultima_version_modelo=db.scalar(select(func.max(ClassifierPrediction.modelo_version))
+                                        .join(SessionData, SessionData.session_id == ClassifierPrediction.session_id)
+                                        .where(SessionData.origen == "sintetico")),
         alumnos_por_trayectoria={k or "sin dato": v for k, v in por_tray.items()},
         sesiones_sinteticas_por_etiqueta={k or "sin dato": v for k, v in por_etq.items()},
     )

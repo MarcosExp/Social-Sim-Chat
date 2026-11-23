@@ -130,6 +130,7 @@ class HealthOut(BaseModel):
     llm_model: str | None = None
     llm_modelo_disponible: bool | None = None
     llm_precalentamiento: str | None = None    # «ok (N ms)», «en curso», «error: ...» o «no aplica» (modo simulado o desactivado)
+    clasificador: str | None = None            # «ok: <versión del modelo de servicio>» o «no disponible: <motivo>»; no cambia `status`
 
 
 # ------------------------------------------------------------------ conversaciones
@@ -281,10 +282,24 @@ class AlumnoChatOut(BaseModel):
     competencia_objetivo: str
 
 
+class PrediccionRealSesionOut(BaseModel):
+    session_id: uuid.UUID
+    sesion_num: int
+    competencia: str
+    etiqueta_predicha: str
+    confianza: float
+    es_estancamiento_operacional: bool
+    fuera_de_rango: list[str] = []      # features de la sesión fuera del rango visto en el entrenamiento (corpus sintético)
+
+
 class PrediccionRealOut(BaseModel):
     student_id: str
-    disponible: bool
+    disponible: bool                    # hay al menos una sesión real con predicción
+    orientativa: bool = True            # siempre: modelo entrenado con datos sintéticos, sin validar con menores reales
+    modelo_version: str | None = None   # versión del modelo de servicio (lleva «sinDET»)
     ventana_requerida: int
     sesiones_reales: int
     sesiones_sinteticas: int
-    motivos: list[str]
+    motivos: list[str]                  # por qué falta la predicción (del alumno o de alguna sesión)
+    avisos: list[str] = []              # límites que acompañan siempre a la predicción
+    predicciones: list[PrediccionRealSesionOut] = []

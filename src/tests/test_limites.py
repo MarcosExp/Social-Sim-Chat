@@ -110,28 +110,27 @@ def test_el_historial_se_borra_con_la_sesion_pero_no_bloquea_el_borrado_del_alum
     # el fixture `alumno` borra al alumno en cascada: no debe fallar por correccion_log
 
 
-# ------------------------------------------------------------------------------------------------ puerta de predicción
-def test_la_prediccion_sobre_sesiones_reales_esta_cerrada_y_explica_por_que(cliente, alumno, fake, bd):
+# ------------------------------------------------------------------------------------------------ predicción sobre sesiones reales
+# (el detalle del modelo de servicio, la ventana y la alerta está en test_prediccion_real.py)
+def test_sin_ventana_la_prediccion_real_no_esta_disponible_y_explica_por_que(cliente, alumno, fake, bd, modelo_servicio):
+    modelo_servicio()
     _terminar_con(cliente, fake, alumno, ())
     d = cliente.get(f"/students/{alumno}/prediccion").json()
-    assert d["disponible"] is False and d["ventana_requerida"] == 4
+    assert d["disponible"] is False and d["ventana_requerida"] == 4 and d["predicciones"] == []
     assert d["sesiones_reales"] == 1 and d["sesiones_sinteticas"] == 0
-    texto = " ".join(d["motivos"])
-    assert "sesiones reales" in texto and "pct_DET" in texto and "evaluador" in texto
+    assert "sesiones reales" in " ".join(d["motivos"]) and d["orientativa"] is True and d["avisos"]
     assert cliente.get("/students/NO-EXISTE/prediccion").status_code == 404
 
 
-def test_la_puerta_se_abre_sola_cuando_no_quedan_motivos(cliente, alumno, fake, bd, monkeypatch):
-    from app import metricas
-    monkeypatch.setattr(metricas, "PROVISIONALES", {})
-    monkeypatch.setattr(metricas, "PROVISIONALES_EVALUADOR", ())
-    for _ in range(4):
-        _terminar_con(cliente, fake, alumno, ())
+def test_sin_modelo_la_prediccion_real_dice_que_no_hay_clasificador(cliente, alumno, fake, bd, sin_modelo):
+    _terminar_con(cliente, fake, alumno, ())
     d = cliente.get(f"/students/{alumno}/prediccion").json()
-    assert d["sesiones_reales"] == 4 and d["motivos"] == [] and d["disponible"] is True
+    assert d["disponible"] is False and d["modelo_version"] is None
+    assert "no está disponible" in " ".join(d["motivos"]) and "make train" in " ".join(d["motivos"])
 
 
-def test_las_sesiones_sinteticas_no_cuentan_para_la_ventana_real(cliente, alumno, fake, bd):
+def test_las_sesiones_sinteticas_no_cuentan_para_la_ventana_real(cliente, alumno, fake, bd, modelo_servicio):
+    modelo_servicio()
     for n in (1, 2, 3, 4):
         _sesion_sintetica(bd, alumno, n)
     _terminar_con(cliente, fake, alumno, ())
