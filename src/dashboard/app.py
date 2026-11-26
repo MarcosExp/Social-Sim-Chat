@@ -216,6 +216,11 @@ with tab_modelo:
             st.subheader("Modelo de servicio (el que predice sobre sesiones reales)")
             st.caption(f"{sv['modelo_version']} · {len(sv['features'])} features · F1-macro {sv['f1_macro']} · "
                        f"recall estancamiento {sv['recall_estancamiento']} · precisión {sv['precision_estancamiento']}. {sv['aviso']}")
+            st.caption("Estas cifras son de una sola partición (semilla 42). Repetido con las semillas 42-51 (las del NF2) y corpus "
+                       "regenerado, el modelo de servicio da de media F1-macro 0,748 · recall de estancamiento 0,643 · precisión 0,635 "
+                       "(medido el 23/11/2026): **de media no cumple** los umbrales (0,75 · 0,65 · 0,65), y supera 0,65 de recall en 5 de "
+                       "10 semillas. Detalle: `docs/validacion/ablacion_sin_det_semillas_42-51_2026-11-23.json`. "
+                       "Si se reentrena, repetir `python -m scripts.semillas_clasificador --primera 42 --semillas 10 --corpus-nuevo`.")
         if m.get("nota_sesiones"):
             st.caption(m["nota_sesiones"])
         af = m["anti_fuga"]
