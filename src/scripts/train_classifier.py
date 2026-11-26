@@ -16,6 +16,10 @@ Flujo:
   4. Ajusta el modelo final con todo el corpus y lo guarda en models/.
   5. Escribe las predicciones (sesiones con ventana completa, >= 4) en
      `classifier_predictions`.
+  6. Entrena además el MODELO DE SERVICIO (sin %DET, 12 features) con los mismos
+     folds, lo mide y lo guarda en el mismo `classifier.joblib` (clave `servicio`).
+     Es el que carga el backend para predecir sobre sesiones reales
+     (`app/prediccion.py`); el de 15 features sigue siendo el evaluado.
 
 Uso:
     python -m scripts.train_classifier
@@ -39,18 +43,37 @@ from sklearn.metrics import confusion_matrix
 
 from app import ml_config
 from app.ml_config import construir_features, heuristica
-from ml.evaluar_corpus import CLASES, cv_predict, metricas, retraso_deteccion, rf
+from ml.evaluar_corpus import CLASES, UMBRALES as CRITERIOS_MARCOS, cv_predict, metricas, retraso_deteccion, rf
 
 COLUMNAS_FEATURES = ml_config.columnas_features()
 VENTANA = ml_config.ventana()
 
 # Umbrales de éxito (recall de estancamiento revisado a >=0.65 tras medir el efecto de las transiciones).
 UMBRALES = {"f1_macro": 0.75, "recall_estancamiento": 0.65, "precision_estancamiento": 0.65}
+NOMBRE_TRAMPOSO = "tramposo_f1 <= real_f1 - 0.10"   # nombres de los criterios de Marcos que forman el control anti-fuga
+NOMBRE_PERMUTADAS = "permutadas_f1 <= 0.40"
 MODELS_DIR = Path(__file__).resolve().parent.parent / "models"
 # La BD guarda las etiquetas en minúsculas y sin tilde (ER v2); SIN_ACENTO acepta además las formas con mayúscula/tilde.
 SIN_ACENTO = {"Progreso": "progreso", "Estancamiento": "estancamiento", "Regresión": "regresion",
               "progreso": "progreso", "estancamiento": "estancamiento", "regresion": "regresion"}
 CON_ACENTO = {"progreso": "Progreso", "estancamiento": "Estancamiento", "regresion": "Regresión"}   # solo para informes
+
+
+def evaluar_criterios(res: dict) -> dict[str, bool | None]:
+    """Los nueve criterios de éxito del NF2, con LA MISMA definición que `ml/evaluar_corpus.py` de Marcos (una sola fuente de verdad).
+
+    `res` = {"real", "heuristica", "tramposo", "permutadas", "deteccion"} (dicts de `metricas()`/`retraso_deteccion()`).
+    Antes `make train` comprobaba solo tres umbrales y un límite propio de las etiquetas permutadas (< 0,45, distinto del ≤ 0,40
+    de Marcos); ahora comprueba los nueve, incluidos la ventaja sobre la heurística y los tres de detección. Un criterio que no se
+    puede evaluar (corpus sin `inicio_cambio`, sin detección) sale `None`, no `False`.
+    """
+    out: dict[str, bool | None] = {}
+    for nombre, f in CRITERIOS_MARCOS:
+        try:
+            out[nombre] = bool(f(res))
+        except (TypeError, KeyError):
+            out[nombre] = None
+    return out
 
 
 def cargar() -> tuple[pd.DataFrame, pd.DataFrame]:
@@ -76,6 +99,33 @@ def cargar() -> tuple[pd.DataFrame, pd.DataFrame]:
     ses["etiqueta"] = ses["etiqueta_real_disenada"].map(lambda e: SIN_ACENTO[e.split(" (")[0].strip()])
     meta["trayectoria"] = meta["trayectoria_disenada"].map(lambda e: SIN_ACENTO[e.split(" (")[0].strip()])
     return ses, meta
+
+
+def modelo_servicio(ses: pd.DataFrame, seed: int, version: str) -> tuple[dict, dict]:
+    """Modelo que sirve el backend sobre sesiones REALES: mismas sesiones y mismos folds, sin las métricas provisionales.
+
+    Devuelve (paquete para el joblib, resumen para metrics.json). El paquete guarda la lista de features, la ventana, la línea
+    base y el rango de cada feature en el entrenamiento, para que la inferencia compruebe que construye lo mismo y avise cuando
+    una sesión real cae fuera de lo que vio el modelo. `ses` debe traer las columnas de `cargar()`."""
+    cols = ml_config.columnas_features_servicio()
+    F = ml_config.construir_features_servicio(ses)
+    y, g, X = F["etiqueta"].to_numpy(dtype=object), F["alumno_id"].to_numpy(), F[cols].to_numpy()
+    real = metricas(y, cv_predict(X, y, g, seed)[0])
+    heur = metricas(y, ml_config.heuristica_servicio(F))
+    p = ml_config.config_servicio()
+    paquete = {"modelo": rf(seed).fit(X, y), "features": cols, "version": version,
+               "metricas": ml_config.metricas_servicio(), "ventana": int(p["features"]["ventana"]),
+               "n_base": int(p["features"]["n_base"]),
+               "rango_entrenamiento": {c: [float(F[c].min()), float(F[c].max())] for c in cols}}
+    r3 = lambda v: round(float(v), 3)  # noqa: E731
+    resumen = {"modelo_version": version, "features": cols, "f1_macro": r3(real["f1_macro"]), "accuracy": r3(real["accuracy"]),
+               "recall_estancamiento": r3(real["recall_estancamiento"]),
+               "precision_estancamiento": r3(real["precision_estancamiento"]),
+               "heuristica": {"f1_macro": r3(heur["f1_macro"]), "recall_estancamiento": r3(heur["recall_estancamiento"])},
+               "aviso": "Modelo de servicio: sin %DET (provisional en sesiones reales). Medido sobre el corpus SINTÉTICO con los "
+                        "mismos folds que el modelo de 15 features; no está validado con sesiones reales."}
+    resumen["cumple_umbrales"] = {k: bool(resumen[k] >= v) for k, v in UMBRALES.items()}
+    return paquete, resumen
 
 
 def proba_oof(X: np.ndarray, y: np.ndarray, fold: np.ndarray, seed: int) -> np.ndarray:
@@ -160,7 +210,9 @@ def main() -> int:
         deteccion = retraso_deteccion(F, pred, meta.assign(inicio_cambio=meta["inicio_cambio"].astype(int),
                                                            ambiguo=meta["ambiguo"].astype(bool)))
 
-    version = f"rf-vent{VENTANA}-{datetime.now(timezone.utc).strftime('%Y%m%d-%H%M%S')}"
+    marca = datetime.now(timezone.utc).strftime('%Y%m%d-%H%M%S')
+    version = f"rf-vent{VENTANA}-{marca}"
+    version_servicio = f"rf-vent{VENTANA}-{ml_config.SUFIJO_VERSION_SERVICIO}-{marca}"
     r3 = lambda v: round(float(v), 3)  # noqa: E731
     out = {
         "modelo_version": version,
@@ -182,22 +234,35 @@ def main() -> int:
         "aviso": "Datos sintéticos: valida la arquitectura, no la eficacia clínica. Una sola partición en folds (±0.05).",
     }
     out["cumple_umbrales"] = {k: bool(out[k] >= v) for k, v in UMBRALES.items()}
+    criterios = evaluar_criterios({"real": real, "heuristica": heur, "tramposo": tramposo, "permutadas": permutadas,
+                                   "deteccion": out["deteccion"]})
+    out["criterios"] = criterios
+    out["criterios_cumplidos"] = f"{sum(v is True for v in criterios.values())}/{len(criterios)}"
     out["anti_fuga"] = {
         "f1_macro_senuelo_competencia_sesion": r3(tramposo["f1_macro"]),
         "f1_macro_etiquetas_permutadas": r3(permutadas["f1_macro"]),
-        "superado": bool(tramposo["f1_macro"] < real["f1_macro"] - 0.10 and permutadas["f1_macro"] < 0.45),
+        "superado": bool(criterios[NOMBRE_TRAMPOSO] and criterios[NOMBRE_PERMUTADAS]),   # criterios de Marcos, sin límites propios
     }
 
     final = rf(args.seed).fit(X, y)  # modelo final: todo el corpus (para inferencia futura desde FastAPI)
     MODELS_DIR.mkdir(parents=True, exist_ok=True)
-    joblib.dump({"modelo": final, "features": COLUMNAS_FEATURES, "version": version, "ventana": VENTANA},
+    servicio, out["servicio"] = modelo_servicio(ses, args.seed, version_servicio)
+    joblib.dump({"modelo": final, "features": COLUMNAS_FEATURES, "version": version, "ventana": VENTANA, "servicio": servicio},
                 MODELS_DIR / "classifier.joblib")
     if not args.no_db:
         out["predicciones_guardadas"] = guardar_predicciones(F, pred, proba, alerta_operacional(F, pred), version)
+        try:        # las sesiones reales ya cerradas se vuelven a predecir con el modelo de servicio recién guardado
+            from app import prediccion
+            from app.db import SessionLocal
+            with SessionLocal() as db:
+                out["predicciones_reales_guardadas"] = prediccion.guardar_todos(db)
+        except Exception as exc:  # noqa: BLE001 — el entrenamiento no falla por esto
+            out["predicciones_reales_guardadas"] = f"error: {type(exc).__name__}"
     (MODELS_DIR / "metrics.json").write_text(json.dumps(out, ensure_ascii=False, indent=2), encoding="utf-8")
 
     print(json.dumps({k: out[k] for k in ("f1_macro", "accuracy", "recall_estancamiento", "precision_estancamiento",
-                                         "cumple_umbrales", "anti_fuga", "heuristica", "deteccion")},
+                                         "cumple_umbrales", "criterios_cumplidos", "criterios", "anti_fuga", "heuristica",
+                                         "deteccion", "servicio")},
                      ensure_ascii=False, indent=2))
     print(f"Modelo {version} guardado en {MODELS_DIR}")
     return 0

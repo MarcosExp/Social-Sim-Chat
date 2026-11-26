@@ -80,8 +80,9 @@ alumno/competencia inexistente, conversación abandonada, `prueba:true`). La API
    13/13 buenas, pero con una batería nueva salen 2,3 % de falsos 2 y solo 72 % de buenas con 2 (informe §10.2); mediana de 1,3 s por turno, antes 0,9 s). El criterio clínico sigue pendiente de revisión.
 2. **La latencia medida en servidor incluía el tiempo del LLM** (`latencia_ms` = `llm_ms` del turno anterior + ~10 ms,
    unos 1-1,5 s de sesgo sobre un corpus de mediana 4,2 s). Con esperas reales de 2 s y 3 s ahora sale 2008 y 3010 ms.
-   Las 28 sesiones generadas con el prompt original se borraron; de las 30 que quedan, 12 (perfiles corto/sinsentido)
-   se generaron antes de este arreglo y conservan el sesgo en la latencia.
+   Las 28 sesiones generadas con el prompt original se borraron; las 12 de perfiles corto/sinsentido se generaron primero con la
+   latencia sesgada y también se **borraron y regeneraron** con el código actual (informe de validación §10.1): las 30 que quedan
+   llevan ya el arreglo.
 3. Un mensaje solo de espacios se aceptaba como turno y contaba 0 palabras en el aMLU: ahora 422.
 
 **Valores observados** (30 sesiones posteriores; son perfiles extremos escritos por mí, no niños):

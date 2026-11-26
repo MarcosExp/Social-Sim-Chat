@@ -3,7 +3,7 @@
 El dashboard solo habla con esta API (REST JSON; documentación interactiva en `/docs`). Cualquier regla de negocio vive en el backend.
 
 ## Acceso
-- **Clave del terapeuta:** cabecera `X-API-Key` = `API_KEY_TERAPEUTA`. En `docker compose` es obligatoria (por defecto `dev-terapeuta-local`, solo desarrollo); fuera de compose, vacía = API abierta. `GET /health` informa de `auth_terapeuta` (`activa`/`desactivada`).
+- **Clave del terapeuta:** cabecera `X-API-Key` = `API_KEY_TERAPEUTA`. En `docker compose` es obligatoria y no tiene valor por defecto (`make up` genera una aleatoria en `environment/.env`); fuera de compose, vacía = API abierta, y con `ENV` distinto de `development` el backend no arranca con la clave vacía ni con la antigua `dev-terapeuta-local`. `GET /health` informa de `auth_terapeuta` (`activa`/`desactivada`).
 - **Quién corrige:** los `PATCH` exigen `X-Terapeuta: <nombre>`, codificado en porcentaje porque las cabeceras HTTP son ASCII (`Álvaro` → `%C3%81lvaro`; un nombre sin acentos vale tal cual). Se guarda en `correccion_log`; **no está verificado**.
 - **Abiertos (sin clave):** `GET /health`, `GET /`, `/chat`, `GET /conversaciones/alumnos` y el flujo del menor (`POST /conversaciones`, `POST /conversaciones/{id}/turnos`).
 - Es autenticación de **prototipo** (clave compartida, sin usuarios ni roles). No basta para datos reales de menores.
@@ -13,7 +13,7 @@ El dashboard solo habla con esta API (REST JSON; documentación interactiva en `
 |---|---|
 | `GET /resumen` | conteos y distribuciones de la cabecera |
 | `GET /students`, `GET /students/{id}` | alumnos simulados |
-| `GET /students/{id}/prediccion` | puerta de predicción sobre sesiones **reales**: `disponible`, `ventana_requerida`, conteos y `motivos` |
+| `GET /students/{id}/prediccion` | predicción **orientativa** sobre sesiones **reales** (modelo de servicio sin %DET): `disponible`, `orientativa`, `modelo_version`, `ventana_requerida`, conteos, `predicciones` (por sesión: etiqueta, confianza, alerta, `fuera_de_rango`), `motivos` y `avisos` |
 | `GET /sessions` (`origen`, `student_id`), `GET /sessions/by-student/{id}` | sesiones (sin `nota_clinica`) |
 | `GET /sessions/{id}` | detalle, con `nota_clinica` (dato sensible) |
 | `GET /predicciones` (`student_id`, `modelo_version`, `todas_las_versiones`) | por defecto, la última versión del modelo |

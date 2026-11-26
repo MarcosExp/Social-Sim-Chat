@@ -55,3 +55,17 @@ def test_un_valor_fuera_de_bajo_medio_alto_se_rechaza(monkeypatch, valor):
     con_generador(monkeypatch, lambda meta: valor)
     with pytest.raises(ValueError, match="nivel_ruido solo admite"):
         seed_corpus.corpus_marcos(None)
+
+
+def test_B14_el_generador_heredado_avisa_de_que_no_sirve_para_validar(capsys, monkeypatch):
+    """Auditoría B14: con `GENERADOR=heredado` la etiqueta se deduce de la competencia y el nº de sesión; el aviso debe salir al cargar."""
+    from scripts import seed_corpus
+
+    def _para(*a, **k):
+        raise RuntimeError("corta antes de tocar la base de datos")
+    monkeypatch.setattr(seed_corpus, "corpus_heredado", _para)
+    try:
+        seed_corpus.seed("heredado", 1, None, reset=False)
+    except RuntimeError:
+        pass
+    assert "NO sirve para validar el clasificador" in capsys.readouterr().out

@@ -13,7 +13,7 @@ echo "==> Comprobando Docker"
 command -v docker >/dev/null || { echo "Docker no está instalado."; exit 1; }
 docker info >/dev/null 2>&1 || { echo "Docker no responde: arranca Docker (Desktop o servicio) y repite."; exit 1; }
 
-[ -f environment/.env ] || { cp environment/.env.example environment/.env; echo "Creado environment/.env"; }
+sh scripts/preparar-env.sh   # crea environment/.env y, si falta, una clave aleatoria del terapeuta
 mkdir -p src/models
 get() { grep -E "^$1=" environment/.env | head -1 | cut -d= -f2- | tr -d '\r' || true; }
 MODEL="$(get OLLAMA_MODEL)"; MODEL="${MODEL:-qwen3:14b}"
