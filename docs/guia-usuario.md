@@ -72,7 +72,7 @@ Seis pestañas:
 |---|---|
 | **Pipeline** | Estado de las seis etapas (base de datos, corpus, clasificador, predicciones, backend, LLM) y reparto del corpus |
 | **Alumno** | Sesiones de un alumno con la etiqueta predicha y la alerta de no-progreso |
-| **Modelo** | Métricas del clasificador frente a sus umbrales y comprobaciones anti-fuga |
+| **Modelo** | Métricas del clasificador frente a sus umbrales, el modelo de servicio (con su media de 10 semillas) y comprobaciones anti-fuga |
 | **Conversación** | Métricas de una sesión sintética concreta |
 | **Sesiones reales** | Métricas de las conversaciones reales terminadas |
 | **Consola del terapeuta** | Corrección de puntuaciones, etiqueta y nota clínica, con historial |
