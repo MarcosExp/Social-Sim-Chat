@@ -18,7 +18,8 @@ function Leer-Env($nombre, $defecto) {
     }
     return $defecto
 }
-$clave   = Leer-Env "API_KEY_TERAPEUTA" "dev-terapeuta-local"
+$clave   = Leer-Env "API_KEY_TERAPEUTA" ""
+if (-not $clave) { Write-Host "Falta API_KEY_TERAPEUTA en environment/.env: ejecuta make up (o scripts\setup-local.ps1), que la genera." -ForegroundColor Red; exit 1 }
 $pBack   = Leer-Env "BACKEND_PORT" "8010"
 $pDash   = Leer-Env "DASHBOARD_PORT" "8501"
 $modelo  = Leer-Env "OLLAMA_MODEL" "qwen3:14b"

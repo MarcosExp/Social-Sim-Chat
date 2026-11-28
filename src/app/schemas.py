@@ -5,7 +5,7 @@ from datetime import date, datetime
 
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class StudentProfileOut(BaseModel):
@@ -129,14 +129,23 @@ class HealthOut(BaseModel):
     llm: str                                   # "ok" o mensaje accionable en español
     llm_model: str | None = None
     llm_modelo_disponible: bool | None = None
+    llm_precalentamiento: str | None = None    # «ok (N ms)», «en curso», «error: ...» o «no aplica» (modo simulado o desactivado)
+    clasificador: str | None = None            # «ok: <versión del modelo de servicio>» o «no disponible: <motivo>»; no cambia `status`
 
 
 # ------------------------------------------------------------------ conversaciones
 class ConversacionIn(BaseModel):
-    student_id: str
-    competencia: str | None = Field(None, description="Si se omite, la competencia objetivo del alumno.")
+    model_config = ConfigDict(str_strip_whitespace=True)   # « Ana » y «Ana» son el mismo alias; un alias en blanco no es un alias
+    student_id: str = Field(..., min_length=1, max_length=64)
+    competencia: str | None = Field(None, max_length=60, description="Si se omite, la competencia objetivo del alumno.")
     alias: str | None = Field(None, max_length=60, description="Nombre que usa el personaje; por defecto student_id.")
     prueba: bool = Field(False, description="Conversación de prueba: no genera sesión real ni métricas.")
+
+    @field_validator("alias", "competencia")
+    @classmethod
+    def _vacio_es_ausente(cls, v: str | None) -> str | None:
+        """Un campo opcional en blanco ('' tras quitar espacios) equivale a omitirlo: no crea un personaje sin nombre."""
+        return v or None
 
 
 class TurnoIn(BaseModel):
@@ -273,10 +282,24 @@ class AlumnoChatOut(BaseModel):
     competencia_objetivo: str
 
 
+class PrediccionRealSesionOut(BaseModel):
+    session_id: uuid.UUID
+    sesion_num: int
+    competencia: str
+    etiqueta_predicha: str
+    confianza: float
+    es_estancamiento_operacional: bool
+    fuera_de_rango: list[str] = []      # features de la sesión fuera del rango visto en el entrenamiento (corpus sintético)
+
+
 class PrediccionRealOut(BaseModel):
     student_id: str
-    disponible: bool
+    disponible: bool                    # hay al menos una sesión real con predicción
+    orientativa: bool = True            # siempre: modelo entrenado con datos sintéticos, sin validar con menores reales
+    modelo_version: str | None = None   # versión del modelo de servicio (lleva «sinDET»)
     ventana_requerida: int
     sesiones_reales: int
     sesiones_sinteticas: int
-    motivos: list[str]
+    motivos: list[str]                  # por qué falta la predicción (del alumno o de alguna sesión)
+    avisos: list[str] = []              # límites que acompañan siempre a la predicción
+    predicciones: list[PrediccionRealSesionOut] = []

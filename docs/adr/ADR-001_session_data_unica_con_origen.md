@@ -41,7 +41,7 @@ Se mantiene **una sola tabla** `session_data`, con `origen IN ('sintetico','real
 
 ## Addendum (18/10/2026) — resultado de la auditoría contra el ER entregado
 - **Predicción en `session_data`.** El ER entregado tiene `etiqueta_prediccion` y `confianza_prediccion` en `session_data`; el stack solo las tenía en `classifier_predictions`. Migración **010**: las dos columnas existen y guardan la **última** predicción; `classifier_predictions` se mantiene como **historial por versión de modelo** (el dashboard lo usa). `train_classifier` escribe ambas y pone a NULL la columna de las sintéticas que el nuevo modelo ya no predice (no queda una predicción vieja haciéndose pasar por actual). Backfill con la última versión: 1200 de 1500 sintéticas (las 3 primeras sesiones de cada alumno no tienen predicción: la ventana es de 4).
-- **Ventana real.** La numeración real continúa la sintética (`UNIQUE (student_id, sesion_num)`), de modo que una ventana «las últimas 4 sesiones» **mezclaría** orígenes. Toda ventana sobre sesiones reales debe filtrar `origen = 'real'`; `GET /students/{id}/prediccion` ya lo aplica al contar.
+- **Ventana real.** La numeración real continúa la sintética (`UNIQUE (student_id, sesion_num)`), de modo que una ventana «las últimas 4 sesiones» **mezclaría** orígenes. Toda ventana sobre sesiones reales debe filtrar `origen = 'real'`; `GET /students/{id}/prediccion` y `app/prediccion.py` lo aplican (NF4: solo se leen sesiones `origen = 'real'`).
 - **`turnos` JSONB** se conservaba por fidelidad al ER original, pero estaba vacío en las 1500 sintéticas y no se usaba para las reales (ver ADR-002). **Superado por el addendum del 23/10/2026.**
 
 ## Addendum (23/10/2026) — se elimina `session_data.turnos`

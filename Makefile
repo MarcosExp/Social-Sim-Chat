@@ -3,7 +3,7 @@
 COMPOSE = docker compose -f environment/docker-compose.yml --env-file environment/.env
 
 up:
-	@test -f environment/.env || cp environment/.env.example environment/.env
+	@sh scripts/preparar-env.sh
 	@mkdir -p src/models
 	$(COMPOSE) up -d --build
 
@@ -23,7 +23,8 @@ migrate:
 	@for f in data/init-db/*.sql; do echo "-> $$f"; $(COMPOSE) exec -T db sh -c 'psql -q -U $$POSTGRES_USER -d $$POSTGRES_DB' < $$f; done
 
 # Carga el corpus sintético corregido (generador de Marcos) en Postgres, vaciando antes las tablas.
-# Para el generador anterior (con turnos, pero filtra la etiqueta): make seed GENERADOR=heredado
+# Para el generador anterior (con turnos, pero filtra la etiqueta: NO sirve para validar el clasificador, solo para pruebas de carga):
+#   make seed GENERADOR=heredado
 GENERADOR ?= marcos
 seed:
 	$(COMPOSE) exec backend python -m scripts.seed_corpus --reset --generador $(GENERADOR)

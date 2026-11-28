@@ -149,6 +149,8 @@ def corregir_turno(conversacion_id: uuid.UUID, orden: int, body: CorreccionTurno
     sesion = metricas.sesion_de(db, conv.conversacion_id)
     if sesion is not None:
         metricas.recalcular_sesion(db, conv, sesion)       # commit incluido
+        from app import prediccion                         # la corrección cambia las métricas: se vuelve a predecir
+        prediccion.guardar_sin_romper(db, conv.student_id)
     else:
         metricas.refrescar_columnas_turno(conv.turnos, conv.competencia)
         db.commit()

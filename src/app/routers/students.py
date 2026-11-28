@@ -2,10 +2,9 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from app import metricas
 from app.db import get_db
 from app.models import SessionData, StudentProfileSim
-from app.schemas import PrediccionRealOut, StudentProfileOut
+from app.schemas import PrediccionRealOut, PrediccionRealSesionOut, StudentProfileOut
 from app.seguridad import exigir_terapeuta
 
 router = APIRouter(prefix="/students", tags=["students"], dependencies=[Depends(exigir_terapeuta)])
@@ -26,26 +25,21 @@ def get_student(student_id: str, db: Session = Depends(get_db)) -> StudentProfil
 
 @router.get("/{student_id}/prediccion", response_model=PrediccionRealOut)
 def prediccion_sobre_sesiones_reales(student_id: str, db: Session = Depends(get_db)) -> PrediccionRealOut:
-    """¿Se puede predecir el estado de este alumno con sus sesiones REALES? Hoy no, y la respuesta dice por qué.
+    """Predicción ORIENTATIVA del clasificador sobre las sesiones REALES del alumno (modelo de servicio, sin %DET).
 
-    No se predice en línea (las predicciones del corpus sintético las calcula `train_classifier` por lotes). El modelo lee
-    ventanas de `ventana_requerida` sesiones consecutivas y sus cinco métricas; sobre sesiones reales faltan datos y hay
-    métricas provisionales. Los motivos salen de las mismas constantes que usa el cálculo (`metricas.PROVISIONALES*`): cuando
-    se resuelvan, `disponible` pasa a verdadero sin tocar este endpoint."""
-    from app.ml_config import ventana         # import diferido: arrastra pandas/numpy
-
-    VENTANA = ventana()
+    Se calcula con el modelo cargado de `classifier.joblib` (`app/prediccion.py`). Las features son de ventana: hacen falta
+    `ventana_requerida` sesiones reales en una misma competencia, y las primeras `ventana_requerida - 1` no tienen predicción.
+    `disponible` es falso si no hay modelo o no hay ventana, y `motivos` dice por qué. `avisos` acompaña siempre: el modelo se
+    entrenó con datos sintéticos, las escalas reales pueden no coincidir y nada está validado con menores reales."""
+    from app import prediccion                # import diferido: arrastra pandas/numpy
+    from app.ml_config import ventana
 
     if db.get(StudentProfileSim, student_id) is None:
         raise HTTPException(status_code=404, detail="student_id no encontrado")
-    n = {o: db.scalar(select(func.count()).select_from(SessionData).where(
-        SessionData.student_id == student_id, SessionData.origen == o)) or 0 for o in ("real", "sintetico")}
-    motivos = []
-    if n["real"] < VENTANA:
-        motivos.append(f"Hacen falta {VENTANA} sesiones reales del alumno para formar una ventana y hay {n['real']}. La ventana debe "
-                       "construirse solo con sesiones de origen real: no se pueden mezclar con las sintéticas, aunque la numeración continúe.")
-    motivos += [f"{col} real es provisional: {por_que}." for col, por_que in metricas.PROVISIONALES.items()]
-    if metricas.PROVISIONALES_EVALUADOR:
-        motivos.append("aMLU, PEPE e IRC dependen del evaluador 0/1/2, aún sin validar con conversaciones reales.")
-    return PrediccionRealOut(student_id=student_id, disponible=not motivos, ventana_requerida=VENTANA,
-                             sesiones_reales=n["real"], sesiones_sinteticas=n["sintetico"], motivos=motivos)
+    n_sint = db.scalar(select(func.count()).select_from(SessionData).where(
+        SessionData.student_id == student_id, SessionData.origen == "sintetico")) or 0
+    r = prediccion.calcular(db, student_id)
+    return PrediccionRealOut(
+        student_id=student_id, disponible=bool(r.predicciones), modelo_version=r.modelo_version, ventana_requerida=ventana(),
+        sesiones_reales=r.sesiones_reales, sesiones_sinteticas=n_sint, motivos=r.motivos, avisos=list(prediccion.AVISOS),
+        predicciones=[PrediccionRealSesionOut(**vars(p)) for p in r.predicciones])

@@ -19,12 +19,47 @@
     conversacion_terminada: "Esta conversación ya ha terminado.",
     conversacion_no_encontrada: "No encuentro esta conversación.",
     limite_sesiones_semana: "Ya has jugado todas las veces que tocaban esta semana. ¡Vuelve otro día!",
+    validacion: "No puedo leer lo que has escrito. Cámbialo un poco e inténtalo otra vez.",
+    bd_no_disponible: "El juego no puede guardar tu respuesta ahora mismo. Espera un momento.",
+    error_interno: "Algo ha fallado en el juego.",
   };
 
   let conv = null;                 // {id, personaje, estado}
   let tListo = null;               // performance.now() cuando el último mensaje del personaje quedó visible
   let pendiente = null;            // {texto, latencia} del turno que falló y puede reintentarse
   let enviando = false;
+
+  /* ---------- ajustes de lectura (tamaño de letra y alto contraste) ----------
+   * Solo preferencias de pantalla, guardadas en este navegador (localStorage, dentro de try/catch: puede no estar disponible).
+   * Nunca se guarda nada del alumno ni de la conversación. Si el sistema pide más contraste (prefers-contrast) y la persona
+   * aún no ha elegido, se activa el alto contraste por defecto. */
+  const CLAVE_AJUSTES = "socialsim-chat-ajustes";
+  const TAMANOS = [["", "normal"], ["grande", "grande"], ["muy-grande", "muy grande"]];
+  const ajustes = { tamano: 0, contraste: false };
+  function leerAjustes() {
+    let g = null;
+    try { g = JSON.parse(localStorage.getItem(CLAVE_AJUSTES)); } catch (e) { /* sin almacenamiento: valores por defecto */ }
+    if (g && Number.isInteger(g.tamano) && g.tamano >= 0 && g.tamano < TAMANOS.length) ajustes.tamano = g.tamano;
+    if (g && typeof g.contraste === "boolean") ajustes.contraste = g.contraste;
+    else if (window.matchMedia && matchMedia("(prefers-contrast: more)").matches) ajustes.contraste = true;
+  }
+  function aplicarAjustes(avisar) {
+    const raiz = document.documentElement;
+    if (TAMANOS[ajustes.tamano][0]) raiz.dataset.tamano = TAMANOS[ajustes.tamano][0]; else delete raiz.dataset.tamano;
+    if (ajustes.contraste) raiz.dataset.contraste = "alto"; else delete raiz.dataset.contraste;
+    $("btn-contraste").setAttribute("aria-pressed", String(ajustes.contraste));
+    $("btn-letra-menos").disabled = ajustes.tamano === 0;
+    $("btn-letra-mas").disabled = ajustes.tamano === TAMANOS.length - 1;
+    if (avisar) $("aviso-ajustes").textContent = "Letra " + TAMANOS[ajustes.tamano][1] + (ajustes.contraste ? ", alto contraste activado." : ".");
+  }
+  function cambiarAjuste(cambio) {
+    cambio();
+    aplicarAjustes(true);
+    try { localStorage.setItem(CLAVE_AJUSTES, JSON.stringify(ajustes)); } catch (e) { /* no se pudo guardar: vale solo en esta visita */ }
+    // un botón que se desactiva pierde el foco: se pasa al otro para no dejar al usuario de teclado en el vacío
+    const activo = document.activeElement;
+    if (activo && activo.disabled) (activo.id === "btn-letra-mas" ? $("btn-letra-menos") : $("btn-letra-mas")).focus();
+  }
 
   /* ---------- utilidades ---------- */
   async function llamar(metodo, ruta, cuerpo) {
@@ -41,7 +76,9 @@
     let datos = null;
     try { datos = await resp.json(); } catch (e) { /* cuerpo vacío o no JSON */ }
     if (!resp.ok) {
-      const d = datos && datos.codigo ? datos : (datos && datos.detail ? { codigo: "validacion", mensaje: JSON.stringify(datos.detail), reintentable: false } : null);
+      // Servidor con el formato del contrato ({codigo, mensaje, reintentable}) o, si es antiguo, el 422 «a pelo» de FastAPI:
+      // nunca se enseña JSON crudo a un menor.
+      const d = datos && datos.codigo ? datos : (datos && datos.detail ? { codigo: "validacion", mensaje: "No puedo leer lo que has escrito.", reintentable: false } : null);
       throw d || { codigo: "http_" + resp.status, mensaje: "Error " + resp.status, reintentable: resp.status >= 500 };
     }
     return datos;
@@ -113,7 +150,8 @@
     ev.preventDefault();
     $("error-inicio").hidden = true;
     const student_id = $("alumno").value;
-    if (!student_id) { $("error-inicio").textContent = "⚠ Elige un alumno."; $("error-inicio").hidden = false; return; }
+    $("alumno").removeAttribute("aria-invalid");
+    if (!student_id) { $("error-inicio").textContent = "⚠ Elige un alumno."; $("error-inicio").hidden = false; $("alumno").setAttribute("aria-invalid", "true"); $("alumno").focus(); return; }
     const cuerpo = { student_id, prueba: $("prueba").checked };
     if ($("alias").value.trim()) cuerpo.alias = $("alias").value.trim();
     if ($("competencia").value) cuerpo.competencia = $("competencia").value;
@@ -182,6 +220,10 @@
   function actualizarContador() { $("contador").textContent = $("respuesta").value.length + " / 500"; }
 
   /* ---------- arranque ---------- */
+  leerAjustes(); aplicarAjustes(false);
+  $("btn-letra-menos").addEventListener("click", () => cambiarAjuste(() => { ajustes.tamano = Math.max(0, ajustes.tamano - 1); }));
+  $("btn-letra-mas").addEventListener("click", () => cambiarAjuste(() => { ajustes.tamano = Math.min(TAMANOS.length - 1, ajustes.tamano + 1); }));
+  $("btn-contraste").addEventListener("click", () => cambiarAjuste(() => { ajustes.contraste = !ajustes.contraste; }));
   $("form-inicio").addEventListener("submit", empezar);
   $("form-turno").addEventListener("submit", alEnviar);
   $("btn-reintentar").addEventListener("click", reintentar);

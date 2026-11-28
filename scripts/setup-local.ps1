@@ -24,7 +24,21 @@ if (-not (Get-Command docker -ErrorAction SilentlyContinue)) { throw "Docker no 
 docker info *> $null
 if ($LASTEXITCODE -ne 0) { throw "Docker no responde. Abre Docker Desktop, espera a que arranque y repite." }
 
-if (-not (Test-Path environment/.env)) { Copy-Item environment/.env.example environment/.env; Write-Host "Creado environment/.env" }
+# Crea environment/.env y, si API_KEY_TERAPEUTA esta vacia, genera una clave aleatoria (equivale a scripts/preparar-env.sh).
+function Asegurar-Env {
+    if (-not (Test-Path environment/.env)) { Copy-Item environment/.env.example environment/.env; Write-Host "Creado environment/.env" }
+    $t = [System.IO.File]::ReadAllText((Resolve-Path environment/.env))
+    if ($t -notmatch '(?m)^API_KEY_TERAPEUTA=\S+') {
+        $b = New-Object byte[] 16
+        [System.Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($b)
+        $k = ($b | ForEach-Object { $_.ToString('x2') }) -join ''
+        if ($t -match '(?m)^API_KEY_TERAPEUTA=') { $t = $t -replace '(?m)^API_KEY_TERAPEUTA=.*$', "API_KEY_TERAPEUTA=$k" }
+        else { $t = $t.TrimEnd() + "`n" + "API_KEY_TERAPEUTA=$k`n" }
+        [System.IO.File]::WriteAllText((Resolve-Path environment/.env), $t, (New-Object System.Text.UTF8Encoding $false))
+        Write-Host "Generada una clave aleatoria del terapeuta en environment/.env"
+    }
+}
+Asegurar-Env
 New-Item -ItemType Directory -Force src/models | Out-Null
 $envText = Get-Content environment/.env -Raw
 $model = if ($envText -match '(?m)^OLLAMA_MODEL=(.+)$') { $Matches[1].Trim() } else { 'qwen3:14b' }
